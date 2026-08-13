@@ -16,9 +16,12 @@ export interface PortalEnv {
 declare global {
   // eslint-disable-next-line no-var
   var __NTV_ENV: Record<string, string | undefined> | undefined;
-  // `process` só existe no runtime Node (dev); no Oxygen ele é ausente.
-  // eslint-disable-next-line no-var
-  var process: { env: Record<string, string | undefined> } | undefined;
+}
+
+/** `process` só existe no runtime Node; no Oxygen ele é ausente — por isso o
+ *  acesso é indireto, sem declarar o global (os tipos do Worker já o reservam). */
+function nodeEnv(): Record<string, string | undefined> | undefined {
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
 }
 
 export function setEnv(env: Record<string, string | undefined>) {
@@ -26,8 +29,7 @@ export function setEnv(env: Record<string, string | undefined>) {
 }
 
 export function getEnv(): PortalEnv {
-  const source =
-    globalThis.__NTV_ENV ?? globalThis.process?.env ?? {};
+  const source = globalThis.__NTV_ENV ?? nodeEnv() ?? {};
   return {
     PUBLIC_GRAPHQL_URL: source.PUBLIC_GRAPHQL_URL ?? "http://localhost:4010/graphql",
     SESSION_SECRET: source.SESSION_SECRET ?? "dev-session-secret",

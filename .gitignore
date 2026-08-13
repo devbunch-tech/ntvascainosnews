@@ -8,3 +8,7 @@ node_modules
 .env
 .shopify
 .react-router
+# saída do `shopify hydrogen build` no portal
+apps/portal/dist
+apps/portal/.oxygen
+apps/portal/build

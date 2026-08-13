@@ -24,7 +24,7 @@ exatamente essa base, então a migração é aditiva, não uma reescrita:
 
 | Peça | Estado atual | Por que já serve ao Oxygen |
 | --- | --- | --- |
-| `react-router.config.ts` | `ssr: true`, framework mode | Mesmo arquivo do template do Hydrogen |
+| `react-router.config.ts` | `hydrogenPreset()` | Preset oficial do Hydrogen para RR7 |
 | `app/routes.ts` | rotas declaradas explicitamente | Formato do RR7 |
 | `app/entry.server.tsx` | `renderToReadableStream` | Web Streams — o `renderToPipeableStream` do Node **não** roda em Workers |
 | `app/lib/graphql.server.ts` | cliente sobre `fetch` | Sem dependência de Node |
@@ -34,59 +34,73 @@ exatamente essa base, então a migração é aditiva, não uma reescrita:
 
 Nada no bundle de servidor importa `fs`, `path`, `crypto` de Node ou `mongoose`.
 
-## Passo a passo da migração
+## Migração aplicada
 
-### 1. Instalar as dependências do Hydrogen
+O portal **já é** um projeto Hydrogen: `shopify hydrogen build` gera `dist/server/oxygen.json`
+e `shopify hydrogen dev` roda o app no mini-oxygen. O que foi feito:
 
-```bash
-npm i @shopify/hydrogen @shopify/remix-oxygen -w @ntv/portal
-npm i -D @shopify/mini-oxygen @shopify/cli -w @ntv/portal
-```
+### 1. Dependências (`apps/portal/package.json`)
 
-### 2. Ligar os plugins no `vite.config.ts`
+`@shopify/hydrogen`, `@shopify/mini-oxygen`, `@shopify/cli` — e três alinhamentos de versão
+que o Hydrogen 2026.4 exige:
+
+| Pacote | De | Para | Motivo |
+| --- | --- | --- | --- |
+| `react-router` / `@react-router/*` | `^7.0.2` | `~7.16.0` | peer exato do Hydrogen |
+| `react` / `react-dom` | `^18.3.1` | `^19.2.8` | React 18 quebra no pré-bundle do worker |
+| `vite` | `^5.4.11` | `^7.3.6` | `mini-oxygen` usa a Environment API (Vite ≥ 6.2) |
+
+**Uma só cópia de Vite no monorepo.** O `mini-oxygen` é hasteado para a raiz e resolve o
+`vite` de lá; se a raiz tiver uma versão diferente da do portal, o dev server sobe mas toda
+request morre com `TypeError: require_react is not a function` — dois runtimes de Vite no
+mesmo processo. Por isso a raiz declara `vite` em `devDependencies` **e** em `overrides`.
+Ao mexer em versões de Vite, confira com `npm ls vite --all` que só existe uma.
+
+### 2. Plugins no `vite.config.ts`
 
 ```ts
-import { hydrogen } from "@shopify/hydrogen/vite";
-import { oxygen } from "@shopify/mini-oxygen/vite";
-import { reactRouter } from "@react-router/dev/vite";
-
-export default defineConfig({
-  plugins: [hydrogen(), oxygen(), reactRouter(), tsconfigPaths()],
-});
+plugins: [hydrogen(), oxygen(), reactRouter(), tsconfigPaths()]
 ```
 
 A ordem importa: `hydrogen()` e `oxygen()` vêm antes do `reactRouter()`.
 
-### 3. Trocar o script de dev
+O `ssr.optimizeDeps.include: ["react-dom/server"]` não é opcional — sem ele o workerd
+falha com `require is not defined`.
+
+### 3. `react-router.config.ts` usa o preset oficial
+
+`hydrogenPreset()` define `appDirectory`, `ssr: true`, `buildDirectory: "dist"` (não mais
+`build/`) e as flags `v8_middleware` / `v8_splitRouteModules`. Ele **bloqueia** `basename`,
+`prerender`, `serverBundles`, `buildEnd` e `subResourceIntegrity` — o CLI do Hydrogen não
+suporta nenhum deles.
+
+### 4. Scripts
 
 ```json
-"dev": "shopify hydrogen dev --codegen --port 3001"
+"dev": "shopify hydrogen dev --port 3001",
+"dev:node": "react-router dev --port 3001",
+"build": "shopify hydrogen build",
+"deploy": "shopify hydrogen deploy"
 ```
 
-O `mini-oxygen` passa a executar o `server.ts` — que já existe — em vez do servidor Node do Vite.
+`dev` roda no runtime de Workers (é o que vale); `dev:node` fica como escape hatch para
+depurar algo fora do worker.
 
-### 4. Criar o storefront client (só se a loja Shopify for usada)
+### 5. Storefront client
 
-O `server.ts` ganha o cliente da Storefront API antes do `handleRequest`:
+`app/lib/context.ts` monta o contexto por request com `createHydrogenContext`, e
+`server.ts` o injeta via `getLoadContext`. Nos loaders, `context.storefront.query(...)`
+convive com o `gql()` da API própria.
 
-```ts
-import { createHydrogenContext } from "@shopify/hydrogen";
-import { createCookieSessionStorage } from "react-router";
+A sessão da Shopify fica em `app/lib/hydrogen-session.server.ts`, num cookie
+`ntv_shopify_session` **separado** do `ntv_session` de `session.server.ts` — aquele guarda o
+login do portal, este o estado da Shopify; se compartilhassem cookie, um sobrescreveria o outro.
 
-const hydrogenContext = createHydrogenContext({
-  env,
-  request,
-  cache: await caches.open("hydrogen"),
-  waitUntil: executionContext.waitUntil.bind(executionContext),
-  session: await AppSession.init(request, [env.SESSION_SECRET]),
-});
+`entry.server.tsx` importa de `react-dom/server`, não de `react-dom/server.browser`: sob a
+condição `workerd` isso resolve para o build edge, sem o scheduler que depende de
+`MessageChannel` (API ausente no Oxygen).
 
-return handleRequest(request, { ...hydrogenContext, env });
-```
-
-Nos loaders, `context.storefront.query(...)` passa a existir ao lado do `gql()` da API própria.
-
-### 5. Variáveis de ambiente no Oxygen
+### 6. Variáveis de ambiente no Oxygen
 
 Configurar em **Hydrogen → Storefront → Environments** (não em arquivo):
 
@@ -99,16 +113,30 @@ Configurar em **Hydrogen → Storefront → Environments** (não em arquivo):
 | `PUBLIC_STOREFRONT_ID` | id do storefront |
 
 O `server.ts` já publica esse objeto via `setEnv(env)`, então todo `*.server.ts` continua lendo do mesmo lugar.
+Em dev os valores saem de `apps/portal/.env` (não versionado; veja `.env.example`) e o mini-oxygen
+lista no boot quais injetou.
 
-### 6. Deploy
+### 7. Linkar a loja
+
+Falta rodar, e exige login interativo no navegador:
 
 ```bash
-npx shopify hydrogen deploy
+npm run link -w @ntv/portal        # shopify hydrogen link
+npx shopify hydrogen env pull      # preenche o .env a partir do storefront
+```
+
+Enquanto `PUBLIC_STORE_DOMAIN` estiver vazio, o Hydrogen loga
+`storeDomain missing, defaulting to mock.shop` e a Storefront API responde da loja de exemplo.
+
+### 8. Deploy
+
+```bash
+npm run deploy -w @ntv/portal      # shopify hydrogen deploy
 ```
 
 Cada branch vira um preview; `main` vai para produção.
 
-### 7. CORS na API
+### 9. CORS na API
 
 Acrescentar o domínio do Oxygen em `CORS_ORIGINS` da `apps/api`. Requests de SSR (server-to-server)
 não mandam `Origin` e já passam; o CORS só importa para o upload de avatar, que é feito do browser.

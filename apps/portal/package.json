@@ -4,26 +4,33 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "react-router dev --port 3001",
-    "build": "react-router build",
-    "start": "react-router-serve ./build/server/index.js",
+    "dev": "shopify hydrogen dev --path \"$PWD\" --port 3001",
+    "dev:node": "react-router dev --port 3001",
+    "build": "shopify hydrogen build --path \"$PWD\"",
+    "preview": "shopify hydrogen preview --path \"$PWD\" --port 3001",
+    "deploy": "shopify hydrogen deploy --path \"$PWD\"",
+    "link": "shopify hydrogen link --path \"$PWD\"",
+    "env:list": "shopify hydrogen env list --path \"$PWD\"",
     "typecheck": "react-router typegen && tsc --noEmit"
   },
   "dependencies": {
     "@ntv/shared": "*",
-    "@react-router/node": "^7.0.2",
-    "@react-router/serve": "^7.0.2",
+    "@react-router/node": "~7.16.0",
+    "@shopify/hydrogen": "^2026.4.4",
     "isbot": "^5.1.17",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router": "^7.0.2"
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router": "~7.16.0"
   },
   "devDependencies": {
-    "@react-router/dev": "^7.0.2",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@react-router/dev": "~7.16.0",
+    "@shopify/cli": "^4.6.1",
+    "@shopify/mini-oxygen": "^4.2.1",
+    "@shopify/oxygen-workers-types": "^4.2.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
     "typescript": "^5.6.3",
-    "vite": "^5.4.11",
+    "vite": "^7.3.6",
     "vite-tsconfig-paths": "^5.1.4"
   }
 }

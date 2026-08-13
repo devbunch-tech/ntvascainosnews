@@ -1,10 +1,10 @@
 import type { Config } from "@react-router/dev/config";
+import { hydrogenPreset } from "@shopify/hydrogen/react-router-preset";
 
 export default {
-  // SSR ligado: é o que o Oxygen executa em produção.
-  ssr: true,
-  // Hydrogen 2025+ é construído sobre React Router 7 em framework mode —
-  // este arquivo é o mesmo que o template do Hydrogen usa.
-  appDirectory: "app",
-  buildDirectory: "build",
+  // O preset oficial do Hydrogen define appDirectory: "app", buildDirectory: "dist",
+  // ssr: true e as flags que o Oxygen exige (v8_middleware, v8_splitRouteModules).
+  // Ele também bloqueia o que o CLI do Hydrogen não suporta: basename, prerender,
+  // serverBundles, buildEnd e subResourceIntegrity.
+  presets: [hydrogenPreset()],
 } satisfies Config;

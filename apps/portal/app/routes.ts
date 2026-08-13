@@ -1,6 +1,9 @@
 import { type RouteConfig, index, route } from "@react-router/dev/routes";
+import { hydrogenRoutes } from "@shopify/hydrogen";
 
-export default [
+// `hydrogenRoutes` acrescenta as rotas virtuais do Hydrogen em dev
+// (GraphiQL em /graphiql e o Subrequest Profiler em /subrequest-profiler).
+export default hydrogenRoutes([
   index("routes/home.tsx"),
   route("noticia/:slug", "routes/post.tsx"),
   route("noticias", "routes/noticias.tsx"),
@@ -23,4 +26,4 @@ export default [
   route("sitemap.xml", "routes/sitemap.tsx"),
   route("sitemap-news.xml", "routes/sitemap-news.tsx"),
   route("feed.xml", "routes/feed.tsx"),
-] satisfies RouteConfig;
+]) satisfies RouteConfig;

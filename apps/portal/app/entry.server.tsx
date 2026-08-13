@@ -1,9 +1,13 @@
-import { renderToReadableStream } from "react-dom/server.browser";
+import { renderToReadableStream } from "react-dom/server";
 import { ServerRouter, type EntryContext } from "react-router";
 import { isbot } from "isbot";
 
 /** `renderToReadableStream` (Web Streams) em vez de `renderToPipeableStream` (Node):
- *  é o caminho compatível com o runtime do Oxygen. */
+ *  é o caminho compatível com o runtime do Oxygen.
+ *
+ *  O import é de `react-dom/server` (não `.browser`): sob a condição `workerd` ele
+ *  resolve para `server.edge.js`, sem o scheduler de browser que depende de
+ *  `MessageChannel` — API que não existe no runtime do Oxygen. */
 export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
