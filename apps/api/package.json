@@ -1,0 +1,48 @@
+{
+  "name": "@ntv/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "build": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "seed": "tsx src/seed.ts",
+    "rss": "tsx src/jobs/rss.ts",
+    "reset:content": "tsx src/scripts/reset-content.ts",
+    "admin:create": "tsx src/scripts/create-admin.ts",
+    "rss:renormalize": "tsx src/scripts/renormalize-rss.ts",
+    "mod:check": "tsx src/scripts/moderation-check.ts",
+    "sync": "tsx src/jobs/sync.ts",
+    "dedupe:check": "tsx src/scripts/dedupe-check.ts",
+    "rss:dedupe": "tsx src/scripts/dedupe-posts.ts",
+    "seo:check": "tsx src/scripts/seo-check.ts",
+    "seo:backfill": "tsx src/scripts/backfill-seo.ts"
+  },
+  "dependencies": {
+    "@apollo/server": "^5.0.0",
+    "@as-integrations/express5": "^1.1.0",
+    "@ntv/shared": "*",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0",
+    "graphql": "^16.9.0",
+    "graphql-scalars": "^1.23.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.8.3",
+    "multer": "^2.0.2",
+    "rss-parser": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.10.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

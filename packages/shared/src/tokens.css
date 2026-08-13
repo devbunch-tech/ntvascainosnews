@@ -1,0 +1,201 @@
+/* NTV News — Design tokens (README §Design Tokens)
+   Escala neutra. NUNCA usar vermelho (cor do rival). */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap");
+
+:root {
+  /* Tinta */
+  --ntv-ink: #101014;
+  --ntv-ink-soft: #2b2b30;
+  --ntv-ink-dim: #3a3a40;
+  --ntv-gray-600: #5a5a62;
+  --ntv-gray-500: #8a8a92;
+  --ntv-gray-500-warm: #8a887f;
+  --ntv-gray-400: #b9b7af;
+
+  /* Superfícies */
+  --ntv-surface-page: #f4f4f2;
+  --ntv-surface-card: #ffffff;
+  --ntv-surface-field: #f8f7f4;
+  --ntv-surface-mute: #eceae5;
+  --ntv-surface-hover: #f0eee9;
+
+  /* Bordas */
+  --ntv-border-card: #e6e4de;
+  --ntv-border-input: #d8d6d0;
+  --ntv-border-inner: #efede8;
+  --ntv-border-list: #e2e0da;
+
+  /* Dark */
+  --ntv-dark-card: #1c1c22;
+  --ntv-dark-line: #26262c;
+  --ntv-dark-text: #c9c9cf;
+  --ntv-dark-text-dim: #8a8a92;
+
+  /* Semânticas */
+  --ntv-success: #0e8a3e;
+  --ntv-success-bg: #e7f5ec;
+  --ntv-warning: #946200;
+  --ntv-warning-bg: #fdf3dd;
+  --ntv-alert: #c9a10a;
+  --ntv-link-ext: #2a6fc0;
+
+  /* Espaçamento (base 4px) */
+  --ntv-gap-1: 4px;
+  --ntv-gap-2: 8px;
+  --ntv-gap-3: 12px;
+  --ntv-gap-4: 16px;
+  --ntv-gap-5: 20px;
+  --ntv-gap-6: 24px;
+  --ntv-pad-card: 16px;
+  --ntv-pad-page: 16px;
+
+  --ntv-shadow-popup: 0 24px 60px rgba(0, 0, 0, 0.45);
+  --ntv-font: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@media (min-width: 900px) {
+  :root {
+    --ntv-pad-page: 28px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--ntv-font);
+  background: var(--ntv-surface-page);
+  color: var(--ntv-ink-soft);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--ntv-ink);
+  text-decoration: none;
+}
+/* Botão nunca é afetado pelo hover genérico de link: cada variante define a
+   própria cor de hover. Sem o :not(), `a:hover` (0,2,1) vencia `.ntv-btn`
+   (0,1,0) e cinzava o texto de todo botão em âncora. */
+a:hover:not(.ntv-btn) {
+  color: var(--ntv-gray-600);
+}
+
+/* ---- Primitivos compartilhados (portal + admin) ---- */
+.ntv-label {
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.ntv-meta {
+  font-weight: 500;
+  font-size: 11px;
+  color: var(--ntv-gray-500);
+  letter-spacing: 0.02em;
+}
+
+.ntv-card {
+  background: var(--ntv-surface-card);
+  border: 1px solid var(--ntv-border-card);
+  border-radius: 0;
+}
+
+.ntv-btn {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 11px 16px;
+  border-radius: 0;
+  cursor: pointer;
+  border: 1px solid var(--ntv-ink);
+  background: var(--ntv-ink);
+  color: #fff;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ntv-btn:hover {
+  background: var(--ntv-ink-soft);
+  border-color: var(--ntv-ink-soft);
+}
+.ntv-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* <button> já é inline-block e aceita width; <a> é inline puro e ignora
+   width/height, estourando o padding. Toda âncora com cara de botão precisa
+   deste display — sem ele, `width: 100%` não faz nada. */
+a.ntv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+}
+.ntv-btn--outline {
+  background: transparent;
+  color: var(--ntv-ink);
+  border-color: var(--ntv-border-input);
+}
+.ntv-btn--outline:hover {
+  background: var(--ntv-surface-hover);
+  color: var(--ntv-ink);
+  border-color: var(--ntv-border-input);
+}
+
+.ntv-input,
+.ntv-select,
+.ntv-textarea {
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ntv-ink);
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--ntv-surface-field);
+  border: 1px solid var(--ntv-border-input);
+  border-radius: 0;
+}
+.ntv-input:focus,
+.ntv-select:focus,
+.ntv-textarea:focus {
+  outline: 2px solid var(--ntv-ink);
+  outline-offset: -2px;
+}
+
+.ntv-badge {
+  display: inline-block;
+  font-weight: 800;
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 6px;
+  background: var(--ntv-ink);
+  color: #fff;
+}
+.ntv-badge--success {
+  background: var(--ntv-success-bg);
+  color: var(--ntv-success);
+}
+.ntv-badge--warning {
+  background: var(--ntv-warning-bg);
+  color: var(--ntv-warning);
+}
+.ntv-badge--mute {
+  background: var(--ntv-surface-mute);
+  color: var(--ntv-gray-600);
+}
+.ntv-badge--invert {
+  background: #fff;
+  color: var(--ntv-ink);
+}

@@ -1,0 +1,18 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: ntv-news-v2-mongo
+    restart: unless-stopped
+    # 27017 já está ocupado pelo stack antigo em ../NTV-NEWS
+    ports:
+      - "27021:27017"
+    volumes:
+      - ntv-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  ntv-mongo-data:
