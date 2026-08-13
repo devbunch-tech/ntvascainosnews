@@ -6,7 +6,7 @@ const settingSchema = new Schema(
     key: { type: String, default: "site", unique: true },
     siteName: { type: String, default: "NTV News" },
     logoUrl: { type: String, default: "/assets/logo.svg" },
-    url: { type: String, default: "https://ntvnews.com.br" },
+    url: { type: String, default: "https://ntvascainosnews.com.br" },
     maintenance: { type: Boolean, default: false },
     /** Ícone da aba e dos favoritos. Enviado em Configurações → Geral. */
     faviconUrl: { type: String, default: null },

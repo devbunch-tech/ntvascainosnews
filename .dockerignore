@@ -1,0 +1,14 @@
+# O contexto do build é a raiz do monorepo; mandar node_modules e artefatos de
+# build para o daemon deixa o build lento e ainda arrisca vazar segredos.
+node_modules
+**/node_modules
+**/dist
+**/build
+apps/portal/.react-router
+apps/api/uploads
+.env
+**/.env
+.git
+.github
+.shopify
+*.log

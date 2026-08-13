@@ -106,7 +106,7 @@ Configurar em **Hydrogen → Storefront → Environments** (não em arquivo):
 
 | Variável | Valor |
 | --- | --- |
-| `PUBLIC_GRAPHQL_URL` | URL pública da `apps/api` (ex.: `https://api.ntvnews.com.br/graphql`) |
+| `PUBLIC_GRAPHQL_URL` | URL pública da `apps/api` (ex.: `https://api.ntvascainosnews.com.br/graphql`) |
 | `SESSION_SECRET` | segredo longo e aleatório |
 | `PUBLIC_STORE_DOMAIN` | `sua-loja.myshopify.com` |
 | `PUBLIC_STOREFRONT_API_TOKEN` | token público da Storefront API |

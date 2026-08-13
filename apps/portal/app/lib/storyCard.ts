@@ -147,7 +147,7 @@ export async function buildStoryCard(input: StoryCardInput): Promise<Blob> {
   ctx.fillStyle = "#8a8a92";
   ctx.font = '700 28px Archivo, sans-serif';
   ctx.textAlign = "right";
-  ctx.fillText(input.siteLabel ?? "ntvnews.com.br", WIDTH - PADDING, HEIGHT - 104);
+  ctx.fillText(input.siteLabel ?? "ntvascainosnews.com.br", WIDTH - PADDING, HEIGHT - 104);
   ctx.textAlign = "left";
 
   return new Promise<Blob>((resolve, reject) => {

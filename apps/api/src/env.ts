@@ -9,7 +9,9 @@ dotenv.config({ path: path.resolve(here, "../../../.env") });
 
 export const env = {
   mongoUri: process.env.MONGODB_URI ?? "mongodb://localhost:27017/ntv_news",
-  port: Number(process.env.API_PORT ?? 4000),
+  // `PORT` é o que Render/Fly/Railway injetam e não dá para escolher; `API_PORT`
+  // é o nosso, do dev local. A plataforma vence quando as duas existem.
+  port: Number(process.env.PORT ?? process.env.API_PORT ?? 4000),
   jwtSecret: process.env.JWT_SECRET ?? "dev-secret-nao-usar-em-producao",
   corsOrigins: (process.env.CORS_ORIGINS ?? "http://localhost:5173,http://localhost:3000")
     .split(",")

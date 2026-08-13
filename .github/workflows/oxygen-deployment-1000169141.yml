@@ -35,7 +35,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # O @ntv/shared é dependência do portal e precisa estar compilado antes do build.
+      - name: Build shared package
+        run: npm run build -w @ntv/shared
+
+      # `--path apps/portal` é obrigatório: o projeto Hydrogen é um workspace, não a raiz
+      # do repositório. Sem isso o CLI responde "Looks like you're trying to run a
+      # Hydrogen command outside of a Hydrogen project".
       - name: Build and Publish to Oxygen
-        run: npx shopify hydrogen deploy
+        run: npx shopify hydrogen deploy --path apps/portal
         env:
           SHOPIFY_HYDROGEN_DEPLOYMENT_TOKEN: ${{ secrets.OXYGEN_DEPLOYMENT_TOKEN_1000169141 }}

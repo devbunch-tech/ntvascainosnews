@@ -155,6 +155,6 @@ function hostOf(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./, "");
   } catch {
-    return "ntvnews.com.br";
+    return "ntvascainosnews.com.br";
   }
 }
