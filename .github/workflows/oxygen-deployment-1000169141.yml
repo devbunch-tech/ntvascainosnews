@@ -42,7 +42,10 @@ jobs:
       # `--path apps/portal` é obrigatório: o projeto Hydrogen é um workspace, não a raiz
       # do repositório. Sem isso o CLI responde "Looks like you're trying to run a
       # Hydrogen command outside of a Hydrogen project".
+      # `--no-lockfile-check`: o CLI exige um lockfile dentro do projeto apontado
+      # por --path, e num monorepo o package-lock.json fica na raiz. O npm ci do
+      # passo anterior já garante a instalação determinística.
       - name: Build and Publish to Oxygen
-        run: npx shopify hydrogen deploy --path apps/portal
+        run: npx shopify hydrogen deploy --path apps/portal --no-lockfile-check
         env:
           SHOPIFY_HYDROGEN_DEPLOYMENT_TOKEN: ${{ secrets.OXYGEN_DEPLOYMENT_TOKEN_1000169141 }}
