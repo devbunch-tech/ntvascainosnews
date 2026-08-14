@@ -17,6 +17,13 @@
  *
  *  `stale-while-revalidate` deixa a borda servir a versão levemente antiga
  *  enquanto busca a nova em segundo plano — ninguém espera pela revalidação.
+ *
+ *  ESTADO: os headers saem corretos, mas o Oxygen ainda responde
+ *  `oxygen-full-page-cache: uncacheable`. Descartei por teste as duas causas
+ *  prováveis — não é o `Vary: Cookie` (testado sem ele) e não é o header padrão
+ *  vs. o próprio (testado com `Oxygen-Cache-Control`). A hipótese restante é
+ *  que o full-page cache precise ser habilitado para este storefront do lado da
+ *  Shopify. O código fica pronto: no dia em que ligar, passa a valer sozinho.
  */
 
 export interface CacheWindow {
@@ -53,6 +60,6 @@ export function pageCacheHeaders(request: Request, window: CacheWindow): Headers
     // O que realmente liga o full-page cache do Oxygen: ele lê este header
     // próprio, não o Cache-Control padrão, e exige um `max-age` explícito.
     "Oxygen-Cache-Control": `public, max-age=${window.sMaxAge}, stale-while-revalidate=${window.staleWhileRevalidate}`,
-    // EXPERIMENTO 2: Oxygen-Cache-Control presente, Vary ausente.
+    Vary: "Cookie",
   };
 }
