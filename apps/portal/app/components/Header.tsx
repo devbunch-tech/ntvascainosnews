@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Form, NavLink, Link, useLocation } from "react-router";
-import { useSite } from "~/lib/site";
+import { useSite, publicAsset } from "~/lib/site";
 
 export interface SessionUser {
   id: string;
@@ -36,9 +36,13 @@ export function Avatar({
   url?: string | null;
   size?: number;
 }) {
+  // Foto enviada rodando local grava URL de localhost; cai na inicial em vez de
+  // mostrar imagem quebrada para todo mundo.
+  const src = publicAsset(url);
+
   return (
     <span className="avatar" style={{ width: size, height: size, fontSize: size * 0.4 }}>
-      {url ? <img src={url} alt="" /> : name.slice(0, 1).toUpperCase()}
+      {src ? <img src={src} alt={`Foto de ${name}`} /> : name.slice(0, 1).toUpperCase()}
     </span>
   );
 }

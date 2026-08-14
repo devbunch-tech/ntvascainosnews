@@ -40,17 +40,34 @@ export interface SiteContext {
   footerAds: SiteData["footerAds"];
 }
 
+/**
+ * Descarta URL de asset que aponta para máquina de desenvolvimento.
+ *
+ * O `/upload` devolve a URL absoluta montada com `PUBLIC_API_URL`, e o que for
+ * enviado rodando local grava `http://localhost:4010/...` no banco. Se esse
+ * banco for o de produção — foi o que aconteceu com o favicon — o site entra no
+ * ar com asset quebrado, e o navegador de quem visita não tem localhost nenhum
+ * para resolver. Melhor cair no padrão do que emitir link morto.
+ */
+export function publicAsset(url?: string | null): string | null {
+  if (!url) return null;
+  if (/^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(:\d+)?\//i.test(url)) return null;
+  return url;
+}
+
 /** Valores neutros quando o loader do root falhou — o portal não pode cair por isso. */
 export function useSite(): SiteContext {
   const data = useRouteLoaderData("root") as SiteData | null | undefined;
   const accounts = data?.settings?.socialAccounts ?? {};
+  const seo = data?.settings?.seo ?? {};
 
   return {
     siteName: data?.settings?.siteName ?? "NTV News",
-    logoUrl: data?.settings?.logoUrl ?? null,
-    faviconUrl: data?.settings?.faviconUrl ?? null,
+    logoUrl: publicAsset(data?.settings?.logoUrl),
+    faviconUrl: publicAsset(data?.settings?.faviconUrl),
     siteUrl: data?.settings?.url ?? "",
-    seo: data?.settings?.seo ?? {},
+    // O og:image entra no card do WhatsApp e do X; localhost ali é card vazio.
+    seo: { ...seo, ogImage: publicAsset(seo.ogImage) },
     footerAds: data?.footerAds ?? [],
     social: Object.entries(accounts)
       .filter(([, value]) => Boolean(value?.url))
