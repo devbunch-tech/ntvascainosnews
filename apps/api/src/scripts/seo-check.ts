@@ -1,5 +1,5 @@
 /** Casos de referência da geração de SEO. Uso: npm run seo:check */
-import { buildPostSeo, buildDescription, buildKeywords } from "@ntv/shared";
+import { buildPostSeo, buildDescription, buildKeywords, categoryPath, tagPath } from "@ntv/shared";
 
 const post = {
   title: "Vasco anuncia a contratação do volante Santiago Sosa",
@@ -36,6 +36,14 @@ const checks: [string, boolean][] = [
   ],
   ["campo manual tem prioridade", buildPostSeo(post, { description: "Manual" }).description === "Manual"],
   ["sem tags ainda gera keywords", buildKeywords({ title: "Vasco vence o Flamengo" }).length > 0],
+
+  // Arquivos de categoria e tag: o rótulo do banco vira URL, e a rota resolve
+  // de volta comparando slugs. Se estas duas funções divergirem do que a rota
+  // espera, todo link interno da matéria cai em 404.
+  ["categoria vira caminho", categoryPath("Mercado da Bola") === "/categoria/mercado-da-bola"],
+  ["tag perde acento no caminho", tagPath("São Januário") === "/tag/sao-januario"],
+  ["caminho ignora caixa", tagPath("VASCO DA GAMA") === tagPath("Vasco da Gama")],
+  ["pontuação não vaza para a URL", tagPath("Sub-20: base") === "/tag/sub-20-base"],
 ];
 
 console.log();

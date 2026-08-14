@@ -82,11 +82,25 @@ a {
   color: var(--ntv-ink);
   text-decoration: none;
 }
-/* Botão nunca é afetado pelo hover genérico de link: cada variante define a
-   própria cor de hover. Sem o :not(), `a:hover` (0,2,1) vencia `.ntv-btn`
-   (0,1,0) e cinzava o texto de todo botão em âncora. */
-a:hover:not(.ntv-btn) {
+/* Botão, badge e tag nunca são afetados pelo hover genérico de link: cada um
+   define a própria cor. Sem o :not(), `a:hover` (0,2,1) vencia `.ntv-btn`
+   (0,1,0) e cinzava o texto de todo botão em âncora — o badge e a tag viraram
+   âncora ao ganhar página de arquivo e caem no mesmo caso. */
+a:hover:not(.ntv-btn, .ntv-badge, .tag) {
   color: var(--ntv-gray-600);
+}
+
+/* Badge e tag em âncora: o padding só vale com inline-block. */
+a.ntv-badge,
+a.tag {
+  display: inline-block;
+}
+a.ntv-badge:hover {
+  background: var(--ntv-ink-soft, #2b2b30);
+}
+a.tag:hover {
+  border-color: var(--ntv-ink);
+  color: var(--ntv-ink);
 }
 
 /* ---- Primitivos compartilhados (portal + admin) ---- */

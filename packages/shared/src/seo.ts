@@ -5,6 +5,7 @@
  * o que será publicado). Tudo é **sugestão**: se a redação preencher o campo à
  * mão, o valor manual manda.
  */
+import { slugify } from "./format.js";
 
 /** Limite prático da meta description antes do Google cortar. */
 const DESCRIPTION_MAX = 158;
@@ -135,6 +136,20 @@ export function buildKeywords(input: {
 
   return out.slice(0, KEYWORDS_MAX);
 }
+
+/* ------------------------------------------------------------------ *
+ * Arquivos de categoria e tag
+ * ------------------------------------------------------------------ */
+
+/**
+ * O banco guarda o rótulo de exibição ("Mercado da Bola"), não um slug — não há
+ * coleção de taxonomia. A URL do arquivo é derivada do rótulo, e a resolução na
+ * rota é feita ao contrário: comparando o slug da URL com o slug de cada valor
+ * publicado. Definido aqui para que portal, sitemap e testes usem a mesma
+ * regra; duas implementações divergentes gerariam link interno quebrado.
+ */
+export const categoryPath = (name: string) => `/categoria/${slugify(name)}`;
+export const tagPath = (name: string) => `/tag/${slugify(name)}`;
 
 /** SEO completo de um post, respeitando o que já foi preenchido à mão. */
 export function buildPostSeo(

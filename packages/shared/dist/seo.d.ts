@@ -1,11 +1,4 @@
 /**
- * Geração automática de SEO por post: descrição, palavras-chave e geo.
- *
- * Roda na API (na gravação e na ingestão de RSS) e no admin (para o editor ver
- * o que será publicado). Tudo é **sugestão**: se a redação preencher o campo à
- * mão, o valor manual manda.
- */
-/**
  * Geolocalização padrão: São Januário, no Rio.
  *
  * As meta tags `geo.*`/ICBM ajudam buscadores e agregadores a entender que o
@@ -48,6 +41,15 @@ export declare function buildKeywords(input: {
     tags?: string[] | null;
     category?: string | null;
 }): string[];
+/**
+ * O banco guarda o rótulo de exibição ("Mercado da Bola"), não um slug — não há
+ * coleção de taxonomia. A URL do arquivo é derivada do rótulo, e a resolução na
+ * rota é feita ao contrário: comparando o slug da URL com o slug de cada valor
+ * publicado. Definido aqui para que portal, sitemap e testes usem a mesma
+ * regra; duas implementações divergentes gerariam link interno quebrado.
+ */
+export declare const categoryPath: (name: string) => string;
+export declare const tagPath: (name: string) => string;
 /** SEO completo de um post, respeitando o que já foi preenchido à mão. */
 export declare function buildPostSeo(input: {
     title: string;

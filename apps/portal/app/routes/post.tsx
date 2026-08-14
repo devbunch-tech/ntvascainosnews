@@ -10,6 +10,7 @@ import { Header, Avatar, type SessionUser } from "~/components/Header";
 import { Footer } from "~/components/Footer";
 import { useSite } from "~/lib/site";
 import { articleJsonLd, geoMeta } from "~/lib/seo";
+import { categoryPath, tagPath } from "~/lib/taxonomy";
 import { Sidebar, type SidebarData } from "~/components/Sidebar";
 import { ShareButtons } from "~/components/ShareButtons";
 import { Comments, type CommentItem } from "~/components/Comments";
@@ -164,6 +165,7 @@ export default function PostRoute() {
                   authorName: post.author?.name,
                   sourceName: post.source.name,
                   sourceUrl: post.source.url,
+                  categoryPath: categoryPath(post.category),
                 },
               ),
             ),
@@ -172,9 +174,12 @@ export default function PostRoute() {
         <div className="wrap columns">
           <article>
             <nav className="breadcrumb">
-              <Link to="/">Início</Link> · {post.category}
+              <Link to="/">Início</Link> ·{" "}
+              <Link to={categoryPath(post.category)}>{post.category}</Link>
             </nav>
-            <span className="ntv-badge">{post.category}</span>
+            <Link className="ntv-badge" to={categoryPath(post.category)}>
+              {post.category}
+            </Link>
             <h1 className="post__title">{post.title}</h1>
             {post.subtitle ? <p className="post__subtitle">{post.subtitle}</p> : null}
 
@@ -210,7 +215,16 @@ export default function PostRoute() {
             </div>
 
             {post.coverImage ? (
-              <img className="post__cover" src={post.coverImage} alt="" />
+              // A foto de abertura é o que concorre na busca por imagens; sem
+              // `alt` descritivo ela não entra em nenhum resultado.
+              <img
+                className="post__cover"
+                src={post.coverImage}
+                alt={post.title}
+                width={1200}
+                height={630}
+                fetchPriority="high"
+              />
             ) : (
               <div className="post__cover" aria-hidden />
             )}
@@ -237,9 +251,9 @@ export default function PostRoute() {
             {post.tags.length ? (
               <div className="tags">
                 {post.tags.map((tag) => (
-                  <span key={tag} className="tag">
+                  <Link key={tag} className="tag" to={tagPath(tag)}>
                     {tag}
-                  </span>
+                  </Link>
                 ))}
               </div>
             ) : null}

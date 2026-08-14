@@ -450,6 +450,20 @@ export const NEWS_LIST_QUERY = /* GraphQL */ `
   }
 `;
 
+/** Facetas de taxonomia: resolvem o slug da URL e alimentam o sitemap. */
+export const TAXONOMY_QUERY = /* GraphQL */ `
+  query Taxonomy {
+    categories {
+      value
+      count
+    }
+    postTags {
+      value
+      count
+    }
+  }
+`;
+
 export const SEARCH_QUERY = /* GraphQL */ `
   ${POST_CARD_FIELDS}
   query Search($q: String!, $limit: Int!, $offset: Int!) {

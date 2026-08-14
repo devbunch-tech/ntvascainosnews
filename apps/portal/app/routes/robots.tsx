@@ -4,6 +4,12 @@ import { getEnv } from "~/lib/env.server";
 /**
  * robots.txt. Aponta os dois sitemaps e barra o que não deve ser rastreado:
  * rotas de API, área logada e a busca (conteúdo duplicado infinito).
+ *
+ * Os rastreadores de IA estão liberados de propósito. Motor generativo só cita
+ * — e só manda tráfego de volta — o que conseguiu rastrear; bloqueá-los tira o
+ * portal das respostas do ChatGPT, do Perplexity e do AI Overview sem impedir
+ * que a mesma notícia seja contada a partir da fonte concorrente. A atribuição
+ * ao NTV News depende de estar lá dentro.
  */
 export async function loader({ request }: LoaderFunctionArgs) {
   const origin = getEnv().PUBLIC_SITE_URL || new URL(request.url).origin;
@@ -16,12 +22,36 @@ Disallow: /perfil
 Disallow: /sair
 Disallow: /busca
 
-# Rastreadores de IA de terceiros: conteúdo é da redação.
+# Rastreadores de IA: liberados para que o portal seja citado nas respostas.
 User-agent: GPTBot
-Disallow: /
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
 
 User-agent: CCBot
-Disallow: /
+Allow: /
 
 Sitemap: ${origin}/sitemap-index.xml
 Sitemap: ${origin}/sitemap-news.xml

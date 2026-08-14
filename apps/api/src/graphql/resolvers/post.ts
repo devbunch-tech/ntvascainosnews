@@ -274,6 +274,23 @@ export const postResolvers = {
       ]);
       return rows.map((r) => ({ value: r._id ?? "Notícias", count: r.count }));
     },
+
+    postTags: async (
+      _: unknown,
+      { limit = 200, minCount = 2 }: { limit?: number; minCount?: number },
+    ) => {
+      const rows = await Post.aggregate([
+        { $match: { status: "published", duplicateOf: null } },
+        { $unwind: "$tags" },
+        { $group: { _id: "$tags", count: { $sum: 1 } } },
+        { $match: { count: { $gte: Math.max(1, minCount) } } },
+        { $sort: { count: -1, _id: 1 } },
+        { $limit: Math.min(limit, 1000) },
+      ]);
+      return rows
+        .filter((r) => typeof r._id === "string" && r._id.trim())
+        .map((r) => ({ value: r._id, count: r.count }));
+    },
   },
 
   Mutation: {

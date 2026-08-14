@@ -463,7 +463,9 @@ com código — o resto (frequência, apuração própria, backlinks) é trabalh
 | Recurso | Onde |
 | --- | --- |
 | `robots.txt` com os dois sitemaps | `/robots.txt` |
-| Sitemap geral, com tag de imagem por matéria | `/sitemap.xml` |
+| Sitemap geral, com tag de imagem por matéria e os arquivos | `/sitemap.xml` |
+| **Arquivo de categoria** (paginado) | `/categoria/:slug` |
+| **Arquivo de tag** (paginado) | `/tag/:slug` |
 | **Sitemap do Google News** (últimas 48 h, com keywords) | `/sitemap-news.xml` |
 | Feed RSS | `/feed.xml` |
 | `NewsMediaOrganization` + `WebSite` com SearchAction | todas as páginas |
@@ -476,6 +478,29 @@ com código — o resto (frequência, apuração própria, backlinks) é trabalh
 O `SearchAction` habilita a caixa de busca do site dentro do resultado do Google. `/busca`
 sai como `noindex, follow` — página de busca gera conteúdo duplicado infinito.
 
+### Arquivos de categoria e tag
+
+Não existe coleção de taxonomia: o post guarda o rótulo de exibição
+("Mercado da Bola"), e a URL é derivada dele por `categoryPath`/`tagPath`
+(`packages/shared/src/seo.ts`). A rota resolve o caminho inverso comparando o slug da URL com
+o slug de cada valor publicado, via as facetas `categories` e `postTags` da API; slug que não
+casa responde **404**, para não indexar arquivo vazio.
+
+`postTags` tem `minCount: 2` por padrão — tag usada uma vez só não vira página, porque arquivo
+com uma matéria é conteúdo raso. A paginação usa canonical auto-referente (`?pagina=2` aponta
+para si mesmo), já que o Google aposentou `rel=prev/next`.
+
+O ganho real vem do link interno: a categoria e as tags da matéria agora são âncoras para os
+arquivos, e os arquivos entram no `/sitemap.xml`.
+
+### Rastreadores de IA
+
+`robots.txt` **libera** GPTBot, OAI-SearchBot, ChatGPT-User, PerplexityBot, ClaudeBot,
+Google-Extended, Applebot-Extended e CCBot. Motor generativo só cita o que rastreou — bloquear
+tira o portal das respostas do ChatGPT, do Perplexity e do AI Overview sem impedir que a mesma
+notícia seja contada a partir do concorrente. Se a política mudar, é uma edição só em
+`apps/portal/app/routes/robots.tsx`.
+
 ### SEO automático por post
 
 `packages/shared/src/seo.ts` gera na gravação e na ingestão de RSS:
@@ -487,8 +512,9 @@ sai como `noindex, follow` — página de busca gera conteúdo duplicado infinit
 - **geo** — São Januário (`-22.890556;-43.227778`), sinal local que pesa para portal de clube.
 
 Escrever a descrição à mão no admin **desliga a geração** para aquele post (`seo.auto`
-vira `false`); apagar o campo religa. `npm run seo:check` guarda 11 casos de referência e
-`npm run seo:backfill` preenche o que já está no banco.
+vira `false`); apagar o campo religa. `npm run seo:check` guarda 15 casos de referência
+(geração de SEO e construção dos caminhos de arquivo) e `npm run seo:backfill` preenche o que
+já está no banco.
 
 O editor tem painel de SEO com contador de caracteres e um toggle de `noindex`, que tira a
 matéria do Google sem despublicar do portal.

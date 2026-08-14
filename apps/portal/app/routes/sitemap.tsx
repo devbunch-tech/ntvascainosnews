@@ -2,7 +2,8 @@ import type { LoaderFunctionArgs } from "react-router";
 import { gql } from "~/lib/graphql.server";
 import { getEnv } from "~/lib/env.server";
 import { escapeXml } from "~/lib/seo";
-import { SITEMAP_QUERY } from "~/lib/queries";
+import { SITEMAP_QUERY, TAXONOMY_QUERY } from "~/lib/queries";
+import { toTaxonomies, type Facet } from "~/lib/taxonomy";
 
 interface Data {
   sitemapPosts: {
@@ -12,6 +13,11 @@ interface Data {
     publishedAt?: string | null;
     coverImage?: string | null;
   }[];
+}
+
+interface TaxonomyData {
+  categories: Facet[];
+  postTags: Facet[];
 }
 
 /** Páginas fixas, com a prioridade que o portal dá a cada uma. */
@@ -27,7 +33,17 @@ const STATIC_PAGES = [
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const origin = getEnv().PUBLIC_SITE_URL || new URL(request.url).origin;
-  const { sitemapPosts } = await gql<Data>(SITEMAP_QUERY, { request, variables: { limit: 5000 } });
+  const [{ sitemapPosts }, facets] = await Promise.all([
+    gql<Data>(SITEMAP_QUERY, { request, variables: { limit: 5000 } }),
+    gql<TaxonomyData>(TAXONOMY_QUERY, { request }),
+  ]);
+
+  // Arquivos de categoria e tag: sem entrada aqui o Google só os alcança pelos
+  // links nas matérias, o que atrasa muito a descoberta de assunto novo.
+  const archives = [
+    ...toTaxonomies(facets.categories ?? [], "categoria"),
+    ...toTaxonomies(facets.postTags ?? [], "tag"),
+  ];
 
   const urls = [
     ...STATIC_PAGES.map(
@@ -35,6 +51,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     <loc>${origin}${page.path}</loc>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
+  </url>`,
+    ),
+    ...archives.map(
+      (archive) => `  <url>
+    <loc>${origin}${archive.path}</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
   </url>`,
     ),
     ...sitemapPosts.map((post) => {

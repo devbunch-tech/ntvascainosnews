@@ -83,6 +83,8 @@ export interface ArticleInput {
   authorName?: string | null;
   sourceName?: string | null;
   sourceUrl?: string | null;
+  /** Caminho do arquivo da categoria, para a trilha apontar ao lugar certo. */
+  categoryPath?: string | null;
 }
 
 /** NewsArticle + trilha de navegação, os dois blocos que o Google usa em notícia. */
@@ -121,7 +123,7 @@ export function articleJsonLd(site: SiteInfo, article: ArticleInput) {
             "@type": "ListItem",
             position: 2,
             name: article.category,
-            item: `${site.siteUrl}/noticias`,
+            item: `${site.siteUrl}${article.categoryPath ?? "/noticias"}`,
           },
           { "@type": "ListItem", position: 3, name: article.title, item: url },
         ],

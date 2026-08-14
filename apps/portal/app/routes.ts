@@ -7,6 +7,8 @@ export default hydrogenRoutes([
   index("routes/home.tsx"),
   route("noticia/:slug", "routes/post.tsx"),
   route("noticias", "routes/noticias.tsx"),
+  route("categoria/:slug", "routes/categoria.$slug.tsx"),
+  route("tag/:slug", "routes/tag.$slug.tsx"),
   route("ntv-exclusivo", "routes/exclusivo.tsx"),
   route("tabela", "routes/tabela.tsx"),
   route("mercado", "routes/mercado.tsx"),

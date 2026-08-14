@@ -659,6 +659,12 @@ export const typeDefs = /* GraphQL */ `
     dashboard: Dashboard!
     categories: [FacetCount!]!
     """
+    Tags publicadas, da mais usada para a menos. O minCount evita gerar página
+    de arquivo para tag de uso único — arquivo com uma matéria só é conteúdo
+    raso e o Google penaliza.
+    """
+    postTags(limit: Int = 200, minCount: Int = 2): [FacetCount!]!
+    """
     Payload enxuto para sitemap e feed: sem corpo, com data de atualização.
     """
     sitemapPosts(limit: Int = 5000): [SitemapPost!]!
