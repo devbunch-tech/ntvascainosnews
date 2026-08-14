@@ -463,7 +463,7 @@ com código — o resto (frequência, apuração própria, backlinks) é trabalh
 | Recurso | Onde |
 | --- | --- |
 | `robots.txt` com os dois sitemaps | `/robots.txt` |
-| Sitemap geral, com tag de imagem por matéria e os arquivos | `/sitemap.xml` |
+| Sitemap geral, com tag de imagem por matéria e os arquivos | `/sitemap-index.xml` |
 | **Arquivo de categoria** (paginado) | `/categoria/:slug` |
 | **Arquivo de tag** (paginado) | `/tag/:slug` |
 | **Sitemap do Google News** (últimas 48 h, com keywords) | `/sitemap-news.xml` |
@@ -491,7 +491,11 @@ com uma matéria é conteúdo raso. A paginação usa canonical auto-referente (
 para si mesmo), já que o Google aposentou `rel=prev/next`.
 
 O ganho real vem do link interno: a categoria e as tags da matéria agora são âncoras para os
-arquivos, e os arquivos entram no `/sitemap.xml`.
+arquivos, e os arquivos entram no `/sitemap-index.xml`.
+
+> O caminho é `/sitemap-index.xml`, não `/sitemap.xml`: o Oxygen reserva o caminho exato
+> `/sitemap.xml` e responde 404 antes de a request chegar ao worker. É o que `app/routes.ts`
+> já registra, e o `robots.txt` aponta para o caminho certo.
 
 ### Rastreadores de IA
 

@@ -35,14 +35,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const origin = getEnv().PUBLIC_SITE_URL || new URL(request.url).origin;
   const [{ sitemapPosts }, facets] = await Promise.all([
     gql<Data>(SITEMAP_QUERY, { request, variables: { limit: 5000 } }),
-    gql<TaxonomyData>(TAXONOMY_QUERY, { request }),
+    // O sitemap das matérias não pode cair junto com as facetas. O portal e a
+    // API sobem em serviços separados, então existe uma janela em que o portal
+    // novo conversa com a API antiga, que ainda não conhece `postTags` — e um
+    // sitemap em 500 é muito pior para o índice do que um sem os arquivos.
+    gql<TaxonomyData>(TAXONOMY_QUERY, { request }).catch(() => null),
   ]);
 
   // Arquivos de categoria e tag: sem entrada aqui o Google só os alcança pelos
   // links nas matérias, o que atrasa muito a descoberta de assunto novo.
   const archives = [
-    ...toTaxonomies(facets.categories ?? [], "categoria"),
-    ...toTaxonomies(facets.postTags ?? [], "tag"),
+    ...toTaxonomies(facets?.categories ?? [], "categoria"),
+    ...toTaxonomies(facets?.postTags ?? [], "tag"),
   ];
 
   const urls = [
