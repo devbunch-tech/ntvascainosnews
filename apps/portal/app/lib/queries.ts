@@ -196,7 +196,16 @@ export const LATEST_PAGE_QUERY = /* GraphQL */ `
   }
 `;
 
-export const COMMENT_FIELDS = /* GraphQL */ `
+/** Os dois fragmentos ficam separados de propósito.
+ *
+ *  O GraphQL rejeita documento com fragmento declarado e não usado — a resposta
+ *  é HTTP 400 `GRAPHQL_VALIDATION_FAILED`, não um erro dentro do JSON. Quando os
+ *  dois vinham juntos num bloco só, a mutation de comentar (que usa apenas
+ *  `CommentBase`) levava `CommentFields` de carona e era recusada inteira.
+ *
+ *  Cada query agora interpola só o que referencia: `COMMENT_BASE_FIELDS` sozinho,
+ *  ou os dois quando precisar das respostas aninhadas. */
+export const COMMENT_BASE_FIELDS = /* GraphQL */ `
   fragment CommentBase on Comment {
     id
     body
@@ -211,7 +220,10 @@ export const COMMENT_FIELDS = /* GraphQL */ `
       avatarUrl
     }
   }
+`;
 
+/** Usa `CommentBase`, então precisa ser interpolado junto com ele. */
+export const COMMENT_TREE_FIELDS = /* GraphQL */ `
   fragment CommentFields on Comment {
     ...CommentBase
     replies {
@@ -223,7 +235,8 @@ export const COMMENT_FIELDS = /* GraphQL */ `
 export const POST_QUERY = /* GraphQL */ `
   ${POST_CARD_FIELDS}
   ${SIDEBAR_FIELDS}
-  ${COMMENT_FIELDS}
+  ${COMMENT_BASE_FIELDS}
+  ${COMMENT_TREE_FIELDS}
   query PostPage($slug: String!) {
     post(slug: $slug) {
       id
@@ -327,7 +340,7 @@ export const SHOP_QUERY = /* GraphQL */ `
 `;
 
 export const ADD_COMMENT_MUTATION = /* GraphQL */ `
-  ${COMMENT_FIELDS}
+  ${COMMENT_BASE_FIELDS}
   mutation AddComment($postSlug: String!, $body: String!, $parentId: ID) {
     addComment(postSlug: $postSlug, body: $body, parentId: $parentId) {
       ok
