@@ -62,6 +62,34 @@ nada disso é limitação do código:
 com `Plan requires payment information on file` enquanto não houver forma de pagamento
 em Workspace Settings → Billing.
 
+### O disco persistente está valendo (verificado em produção)
+
+O upgrade foi feito e o disco está montado. A verificação, em 14/08/2026, não foi por
+leitura do painel — foi empírica:
+
+1. Upload de um arquivo pelo `/upload` da API em produção.
+2. Um deploy real da API (push em `main` → rebuild no Render), confirmado por
+   `/health` voltar com `uptime` de segundos, ou seja, processo novo.
+3. O mesmo arquivo continuou respondendo 200 depois.
+
+Então **avatar, capa de matéria e foto de produto sobrevivem a deploy**. Se um dia essa
+garantia cair (troca de região, recriação do serviço, blueprint aplicado por cima), o
+mesmo roteiro de três passos responde em dois minutos.
+
+O banco nunca esteve em risco: o MongoDB é Atlas, serviço externo — deploy da API não
+encosta nele. Notícia, usuário, comentário e configuração não dependem do disco.
+
+### Armadilha: admin de dev apontando para o banco de produção
+
+O `/upload` devolve **URL absoluta**, montada com `PUBLIC_API_URL`. Rodando local, isso
+grava `http://localhost:4010/uploads/...` — e se o admin de dev estiver conectado ao banco
+de produção, essa URL vai para o site publicado, onde nenhum visitante consegue resolver.
+
+Aconteceu com o favicon e com o banner de um anunciante. O portal hoje tem uma rede de
+proteção (`publicAsset()` em `app/lib/site.ts`) que descarta URL de máquina de
+desenvolvimento e cai no padrão, mas **ela esconde o sintoma, não corrige o dado**: o
+arquivo precisa ser reenviado pelo admin de produção.
+
 ### Os jobs rodam dentro da API
 
 Não há serviço de cron no Render. O [`scheduler.ts`](../apps/api/src/scheduler.ts) agenda
