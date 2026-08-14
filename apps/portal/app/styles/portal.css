@@ -1995,6 +1995,17 @@ tr.zone--rebaixamento .standings__pos::before {
        espaço para o hambúrguer à esquerda e busca + avatar à direita. O clamp
        segura a barra em telas de 320px, onde 148px não caberiam. */
     height: clamp(40px, 14vw, 54px);
+    /* O SVG tem margem vazia assimétrica embutida: o desenho ocupa x de 89 a
+       1861 num viewBox de 2800 (938 unidades sobrando à direita contra 89 à
+       esquerda) e y de 102 a 691 em 1024 (333 embaixo contra 102 em cima).
+       A caixa da imagem fica centralizada, mas o desenho dentro dela encosta à
+       esquerda e ao alto — e é o desenho que o olho vê.
+       Deslocamento medido: 424,75/2800 = 15,2% da largura e 115,55/1024 = 11,3%
+       da altura. Em porcentagem, e não em px, para acompanhar o clamp: a mesma
+       regra vale com o logo em 54px ou em 40px.
+       A correção definitiva é apertar o viewBox no próprio arquivo; enquanto
+       ele não muda, a compensação vive aqui. */
+    transform: translate(15.2%, 11.3%);
   }
   /* Centralização absoluta, não por flex: os dois lados da barra têm larguras
      diferentes (hambúrguer à esquerda; busca e avatar à direita), e centralizar
