@@ -23,7 +23,7 @@ Disallow: /
 User-agent: CCBot
 Disallow: /
 
-Sitemap: ${origin}/sitemap.xml
+Sitemap: ${origin}/sitemap-index.xml
 Sitemap: ${origin}/sitemap-news.xml
 `;
 
