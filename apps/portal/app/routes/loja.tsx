@@ -11,7 +11,7 @@ import {
 import { formatPrice } from "@ntv/shared";
 import { Header, type SessionUser } from "~/components/Header";
 import { Footer } from "~/components/Footer";
-import { useSite } from "~/lib/site";
+import { useSite, publicAsset } from "~/lib/site";
 import { pageMeta } from "~/lib/seo";
 import { gql } from "~/lib/graphql.server";
 import { SHOP_QUERY } from "~/lib/queries";
@@ -102,8 +102,8 @@ function BuyButton({ product }: { product: ShopProduct }) {
 function ProductCard({ product }: { product: ShopProduct }) {
   return (
     <article className={`product ${product.soldOut ? "product--out" : ""}`}>
-      {product.imageUrl ? (
-        <img className="product__media" src={product.imageUrl} alt="" />
+      {publicAsset(product.imageUrl) ? (
+        <img className="product__media" src={publicAsset(product.imageUrl)!} alt={product.title} />
       ) : (
         <div className="product__media" aria-hidden />
       )}

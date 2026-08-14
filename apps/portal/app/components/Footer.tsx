@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { SOCIAL_LABELS, SOCIAL_ORDER, SocialIcon, type SocialNetwork } from "./SocialIcons";
+import { publicAsset } from "~/lib/site";
 
 export interface FooterSocial {
   network: SocialNetwork;
@@ -36,7 +37,11 @@ export function Footer({
                 target="_blank"
                 rel="noopener sponsored"
               >
-                {ad.imageUrl ? <img src={ad.imageUrl} alt={ad.title} /> : <span>{ad.title}</span>}
+                {publicAsset(ad.imageUrl) ? (
+                  <img src={publicAsset(ad.imageUrl)!} alt={ad.title} />
+                ) : (
+                  <span>{ad.title}</span>
+                )}
               </a>
             ))}
           </div>

@@ -8,7 +8,7 @@ import {
 import { formatDateTime } from "@ntv/shared";
 import { Header, Avatar, type SessionUser } from "~/components/Header";
 import { Footer } from "~/components/Footer";
-import { useSite } from "~/lib/site";
+import { useSite, publicAsset } from "~/lib/site";
 import { articleJsonLd, geoMeta } from "~/lib/seo";
 import { categoryPath, tagPath } from "~/lib/taxonomy";
 import { Sidebar, type SidebarData } from "~/components/Sidebar";
@@ -240,8 +240,8 @@ export default function PostRoute() {
                 target="_blank"
                 rel="noopener sponsored"
               >
-                {articleAds[0].imageUrl ? (
-                  <img src={articleAds[0].imageUrl} alt={articleAds[0].title} />
+                {publicAsset(articleAds[0].imageUrl) ? (
+                  <img src={publicAsset(articleAds[0].imageUrl)!} alt={articleAds[0].title} />
                 ) : (
                   <span className="adslot__fallback">{articleAds[0].title}</span>
                 )}

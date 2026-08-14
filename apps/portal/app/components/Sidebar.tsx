@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { formatPrice, timeAgo } from "@ntv/shared";
 import { NewsRow, type PostCardData } from "./PostCards";
+import { publicAsset } from "~/lib/site";
 
 export interface SidebarData {
   clubStats?: {
@@ -414,8 +415,8 @@ function AdWidget({ ads }: { ads?: SidebarData["ads"] }) {
             rel="noopener sponsored"
             onClick={() => fetcher.submit({ id: ad.id }, { method: "post", action: "/api/clique-anuncio" })}
           >
-            {ad.imageUrl ? (
-              <img src={ad.imageUrl} alt={ad.title} loading="lazy" />
+            {publicAsset(ad.imageUrl) ? (
+              <img src={publicAsset(ad.imageUrl)!} alt={ad.title} loading="lazy" />
             ) : (
               <span className="adslot__fallback">{ad.title}</span>
             )}
@@ -440,7 +441,11 @@ function ShopWidget({ products }: { products: SidebarData["shopHighlights"] }) {
           target="_blank"
           rel="noopener sponsored"
         >
-          {p.imageUrl ? <img src={p.imageUrl} alt="" /> : <span className="ph" />}
+          {publicAsset(p.imageUrl) ? (
+            <img src={publicAsset(p.imageUrl)!} alt={p.title} />
+          ) : (
+            <span className="ph" />
+          )}
           <span>
             <span className="shopmini__title">{p.title}</span>
             <br />
