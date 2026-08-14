@@ -12,6 +12,7 @@ import { resolvers } from "./graphql/resolvers/index.js";
 import { userFromToken } from "./lib/auth.js";
 import type { GraphQLContext } from "./lib/context.js";
 import { imageProxyHandler } from "./lib/imageProxy.js";
+import { startScheduler } from "./scheduler.js";
 
 await connectDB();
 
@@ -87,6 +88,9 @@ app.use(
 );
 
 app.listen(env.port, () => {
-  console.log(`[api] GraphQL em http://localhost:${env.port}/graphql`);
+  console.log(`[api] GraphQL na porta ${env.port}`);
   console.log(`[api] uploads em ${env.uploadsDir}`);
+  // Depois do listen: o health check do Render precisa responder antes de
+  // qualquer job começar a disputar CPU.
+  startScheduler(env.isProd);
 });
