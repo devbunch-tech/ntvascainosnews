@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { formatPrice, timeAgo } from "@ntv/shared";
 import { NewsRow, type PostCardData } from "./PostCards";
-import { publicAsset } from "~/lib/site";
+import { publicAsset, useSite } from "~/lib/site";
 
 export interface SidebarData {
   clubStats?: {
@@ -464,7 +464,13 @@ function ShopWidget({ products }: { products: SidebarData["shopHighlights"] }) {
   );
 }
 
-/** Ordem dos widgets segue o README: na página do post, "Últimas postagens" vem primeiro. */
+/**
+ * Sidebar montada a partir da configuração do admin.
+ *
+ * "Últimas postagens" fica fora da lista de propósito: só existe na página da
+ * matéria e o README a fixa no topo. Os demais widgets seguem a ordem e a
+ * visibilidade gravadas em Configurações → Sidebar.
+ */
 export function Sidebar({
   data,
   latestPosts,
@@ -474,6 +480,19 @@ export function Sidebar({
   latestPosts?: PostCardData[];
   youtubeChannelUrl?: string;
 }) {
+  const site = useSite();
+
+  const byKey: Record<string, React.ReactNode> = {
+    clubStats: <ClubStatsWidget stats={data.clubStats} />,
+    lastMatches: <LastMatchesWidget matches={data.lastMatches} />,
+    nextMatches: <NextMatchesWidget matches={data.nextMatches} />,
+    market: <MarketWidget polls={data.activePolls} />,
+    signings: <SigningsWidget signings={data.signings} />,
+    youtube: <YouTubeWidget videos={data.latestVideos} channelUrl={youtubeChannelUrl} />,
+    ads: <AdWidget ads={data.ads} />,
+    shop: <ShopWidget products={data.shopHighlights} />,
+  };
+
   return (
     <aside className="sidebar">
       {latestPosts?.length ? (
@@ -486,14 +505,10 @@ export function Sidebar({
           </div>
         </section>
       ) : null}
-      <ClubStatsWidget stats={data.clubStats} />
-      <LastMatchesWidget matches={data.lastMatches} />
-      <NextMatchesWidget matches={data.nextMatches} />
-      <MarketWidget polls={data.activePolls} />
-      <SigningsWidget signings={data.signings} />
-      <YouTubeWidget videos={data.latestVideos} channelUrl={youtubeChannelUrl} />
-      <AdWidget ads={data.ads} />
-      <ShopWidget products={data.shopHighlights} />
+
+      {site.sidebarWidgets.map((key) =>
+        byKey[key] ? <Fragment key={key}>{byKey[key]}</Fragment> : null,
+      )}
     </aside>
   );
 }

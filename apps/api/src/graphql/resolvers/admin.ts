@@ -1,3 +1,4 @@
+import { resolveSidebarWidgets, resolveAdLimit } from "@ntv/shared";
 import { Post } from "../../models/Post.js";
 import { Event } from "../../models/Event.js";
 import { RssSource } from "../../models/RssSource.js";
@@ -79,6 +80,23 @@ export const adminResolvers = {
       return getSettings();
     },
 
+    saveSidebar: async (
+      _: unknown,
+      { widgets, adLimit }: { widgets: { key: string; visible: boolean }[]; adLimit: number },
+      ctx: GraphQLContext,
+    ) => {
+      requirePermission(ctx.user, "settings:manage");
+      // Passa pelo resolvedor antes de gravar para descartar chave inventada e
+      // duplicata; o que sobra é a lista na ordem em que o admin mandou.
+      const clean = resolveSidebarWidgets(widgets).map((w) => ({ key: w.key, visible: w.visible }));
+      await Setting.updateOne(
+        { key: "site" },
+        { $set: { "sidebar.widgets": clean, "sidebar.adLimit": resolveAdLimit(adLimit) } },
+        { upsert: true },
+      );
+      return getSettings();
+    },
+
     connectSocial: async (
       _: unknown,
       { network, handle }: { network: string; handle: string },
@@ -135,6 +153,12 @@ export const adminResolvers = {
 
   RssSource: { id: idField },
   Settings: {
+    // Resolvido na leitura, não na gravação: assim um widget novo no código
+    // aparece para quem já tem configuração salva, sem migração de banco.
+    sidebar: (s: any) => ({
+      widgets: resolveSidebarWidgets(s.sidebar?.widgets),
+      adLimit: resolveAdLimit(s.sidebar?.adLimit),
+    }),
     seo: (s: any) => ({
       title: s.seo?.title ?? "",
       description: s.seo?.description ?? "",

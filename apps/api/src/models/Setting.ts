@@ -53,6 +53,23 @@ const settingSchema = new Schema(
         url: { type: String, default: "" },
       },
     },
+    /** Ordem e visibilidade dos widgets da sidebar, configuradas no admin.
+     *  A posição no array é a ordem; chave desconhecida é descartada na
+     *  leitura por `resolveSidebarWidgets`. Vazio = usa o padrão do código. */
+    sidebar: {
+      widgets: {
+        type: [
+          {
+            _id: false,
+            key: { type: String, required: true },
+            visible: { type: Boolean, default: true },
+          },
+        ],
+        default: [],
+      },
+      /** Quantas campanhas a sidebar exibe. */
+      adLimit: { type: Number, default: 2 },
+    },
     /** Origem dos jogos exibidos na sidebar. */
     matches: {
       transfermarktUrl: {

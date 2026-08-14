@@ -449,6 +449,39 @@ testado contra a API real** — o token é pessoal. Sem ele, o widget de estatí
 **Admin → Jogos** permite cadastro e edição manual a qualquer momento. O link de ingresso
 (`ticketUrl`) é preenchido lá e **nunca é sobrescrito** pela sincronização.
 
+## Sidebar configurável
+
+**Configurações → Sidebar** controla a ordem e a visibilidade dos widgets, e quantas
+campanhas o espaço de publicidade exibe. Vale para a home e para a página da matéria —
+uma configuração só. Em "Últimas postagens" não se mexe: existe apenas na matéria e o
+README a fixa no topo.
+
+Reordenar funciona por arraste **e** por setas. As setas não são redundância: o painel é
+mobile-first, e arraste não funciona no toque sem biblioteca de gestos.
+
+O catálogo de widgets vive em [`packages/shared/src/sidebar.ts`](packages/shared/src/sidebar.ts),
+não no banco. O que se grava é só a ordem e o `visible` de cada chave; a leitura passa por
+`resolveSidebarWidgets`, que:
+
+- descarta chave desconhecida — widget removido do código não volta como item fantasma;
+- **acrescenta ao fim, visível, a chave conhecida que não está salva** — é isso que faz um
+  widget novo aparecer sozinho. Sem essa metade, toda peça nova nasceria invisível para
+  quem já tem configuração gravada, e o bug seria silencioso.
+
+Por isso a resolução acontece na **leitura**, não na gravação: acrescentar um widget no
+código não pede migração de banco.
+
+`npm run seo:check` cobre esses casos junto com os de SEO.
+
+### Campanhas simultâneas
+
+O modelo de anúncio sempre suportou várias campanhas ativas (`active`, `weight` para a
+ordem, `startsAt`/`endsAt` para o período). O que limitava era um `.limit(2)` fixo na
+consulta da sidebar — agora o número vem de **Configurações → Sidebar**, com teto de 10.
+`0` esconde o espaço inteiro sem precisar pausar campanha por campanha.
+
+A impressão é contada **depois** do corte: peça que não foi entregue não computa.
+
 ## Anunciantes
 
 Model `Ad` com quatro posições: `sidebar`, `in_article`, `footer` e `shop`. As peças são

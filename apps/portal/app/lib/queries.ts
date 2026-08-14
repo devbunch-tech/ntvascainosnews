@@ -46,6 +46,12 @@ export const SITE_QUERY = /* GraphQL */ `
           url
         }
       }
+      sidebar {
+        widgets {
+          key
+          visible
+        }
+      }
     }
     footerAds: ads(placement: footer) {
       ...AdFields

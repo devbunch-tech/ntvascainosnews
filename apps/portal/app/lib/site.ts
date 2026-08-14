@@ -1,4 +1,5 @@
 import { useRouteLoaderData } from "react-router";
+import { resolveSidebarWidgets } from "@ntv/shared";
 import type { SocialNetwork } from "~/components/SocialIcons";
 
 /**
@@ -26,6 +27,7 @@ export interface SiteData {
       ogImage?: string | null;
     } | null;
     socialAccounts: Record<string, { url?: string | null } | null>;
+    sidebar?: { widgets?: { key: string; visible: boolean }[] | null } | null;
   };
   footerAds: { id: string; title: string; imageUrl?: string | null; targetUrl: string }[];
 }
@@ -38,6 +40,8 @@ export interface SiteContext {
   seo: NonNullable<SiteData["settings"]["seo"]>;
   social: { network: SocialNetwork; url: string }[];
   footerAds: SiteData["footerAds"];
+  /** Widgets da sidebar já na ordem configurada, invisíveis removidos. */
+  sidebarWidgets: string[];
 }
 
 /**
@@ -68,6 +72,11 @@ export function useSite(): SiteContext {
     siteUrl: data?.settings?.url ?? "",
     // O og:image entra no card do WhatsApp e do X; localhost ali é card vazio.
     seo: { ...seo, ogImage: publicAsset(seo.ogImage) },
+    // O mesmo resolvedor da API roda aqui: se as configurações não vierem, o
+    // portal cai na ordem padrão em vez de renderizar sidebar vazia.
+    sidebarWidgets: resolveSidebarWidgets(data?.settings?.sidebar?.widgets)
+      .filter((widget) => widget.visible)
+      .map((widget) => widget.key),
     footerAds: data?.footerAds ?? [],
     social: Object.entries(accounts)
       .filter(([, value]) => Boolean(value?.url))

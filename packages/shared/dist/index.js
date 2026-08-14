@@ -4,3 +4,4 @@ export * from "./format.js";
 export * from "./moderation.js";
 export * from "./dedupe.js";
 export * from "./seo.js";
+export * from "./sidebar.js";

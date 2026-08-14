@@ -7,7 +7,9 @@ import { Event } from "../../models/Event.js";
 import { Video } from "../../models/Video.js";
 import { Ad } from "../../models/Ad.js";
 import { Signing } from "../../models/Signing.js";
+import { getSettings } from "../../models/Setting.js";
 import { liveAdQuery } from "./media.js";
+import { resolveAdLimit, MAX_AD_LIMIT } from "@ntv/shared";
 import { idField, type GraphQLContext } from "../../lib/context.js";
 
 // `duplicateOf: null` mantém a home livre da mesma notícia repetida por
@@ -21,8 +23,12 @@ export const homeResolvers = {
         .select("_id")
         .lean()).map((u) => u._id);
 
-      const [featured, teamPosts, latest, latestTotal, clubStats, lastMatches, nextMatches, polls, shop, videos, ads, signings] =
+      const [settings, [featured, teamPosts, latest, latestTotal, clubStats, lastMatches, nextMatches, polls, shop, videos, adPool, signings]] =
         await Promise.all([
+        // As configurações entram no mesmo lote das demais consultas: buscá-las
+        // antes tornaria a rota mais quente do site uma ida a mais em série.
+        getSettings(),
+        Promise.all([
           Post.find({ ...PUBLISHED, "featured.active": true })
             .sort({ "featured.position": 1 })
             .limit(3)
@@ -46,11 +52,19 @@ export const homeResolvers = {
           Poll.find({ status: "open" }).sort({ order: 1, rumouredAt: -1 }).limit(5).lean(),
           Product.find({ visible: true }).sort({ highlighted: -1, createdAt: -1 }).limit(4).lean(),
           Video.find().sort({ publishedAt: -1 }).limit(3).lean(),
-          Ad.find(liveAdQuery("sidebar")).sort({ weight: -1, createdAt: -1 }).limit(2).lean(),
+          // Busca o teto e corta depois: o limite configurado só se conhece
+          // junto com as configurações, que estão vindo neste mesmo lote.
+          Ad.find(liveAdQuery("sidebar")).sort({ weight: -1, createdAt: -1 }).limit(MAX_AD_LIMIT).lean(),
           Signing.find({ direction: "in" }).sort({ order: 1, createdAt: -1 }).limit(5).lean(),
-        ]);
+        ]),
+      ]);
+
+      // Quantas campanhas a sidebar exibe é configurável no admin; 0 desliga o
+      // espaço sem precisar pausar cada campanha uma a uma.
+      const ads = adPool.slice(0, resolveAdLimit(settings.sidebar?.adLimit));
 
       // Impressão é contada aqui: o anúncio foi entregue na resposta do SSR.
+      // Depois do corte, de propósito — peça que não foi entregue não computa.
       if (ads.length) {
         await Ad.updateMany({ _id: { $in: ads.map((ad) => ad._id) } }, { $inc: { impressions: 1 } });
       }

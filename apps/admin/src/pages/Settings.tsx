@@ -8,6 +8,7 @@ import {
   DISCONNECT_SOCIAL,
   RUN_RSS,
   SAVE_SETTINGS,
+  SAVE_SIDEBAR,
   SAVE_SOCIAL_LINKS,
   SAVE_YOUTUBE_CHANNEL,
   SYNC_YOUTUBE,
@@ -15,8 +16,9 @@ import {
   TOGGLE_RSS,
 } from "../lib/queries";
 import { Field, ImageDrop, Toggle } from "../components/ui";
+import { SidebarConfig } from "../components/SidebarConfig";
 
-const TABS = ["Geral", "Fontes RSS", "Redes sociais", "SEO"] as const;
+const TABS = ["Geral", "Sidebar", "Fontes RSS", "Redes sociais", "SEO"] as const;
 
 const NETWORK_FIELDS = [
   { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/…" },
@@ -160,6 +162,14 @@ export function Settings() {
             onChange={(v) => set("maintenance", v)}
           />
         </section>
+      ) : null}
+
+      {tab === "Sidebar" && data?.settings?.sidebar ? (
+        <SidebarConfig
+          widgets={data.settings.sidebar.widgets}
+          adLimit={data.settings.sidebar.adLimit}
+          onSaved={() => void refetch()}
+        />
       ) : null}
 
       {tab === "Fontes RSS" ? (

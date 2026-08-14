@@ -432,6 +432,29 @@ export const typeDefs = /* GraphQL */ `
     socialAccounts: SocialAccounts!
     youtube: YoutubeChannel!
     matches: MatchesSource!
+    sidebar: SidebarConfig!
+  }
+
+  """
+  Ordem e visibilidade dos widgets da sidebar. A posição na lista é a ordem.
+  """
+  type SidebarConfig {
+    widgets: [SidebarWidget!]!
+    """
+    Quantas campanhas a sidebar exibe. 0 esconde o espaço publicitário.
+    """
+    adLimit: Int!
+  }
+
+  type SidebarWidget {
+    key: String!
+    label: String!
+    visible: Boolean!
+  }
+
+  input SidebarWidgetInput {
+    key: String!
+    visible: Boolean!
   }
 
   type ClubStats {
@@ -718,6 +741,10 @@ export const typeDefs = /* GraphQL */ `
     saveSettings(input: SettingsInput!): Settings!
     saveSocialLinks(links: [SocialLinkInput!]!): Settings!
     saveYoutubeChannel(channelUrl: String!): Settings!
+    """
+    Grava a sidebar inteira de uma vez: a ordem da lista é a ordem na tela.
+    """
+    saveSidebar(widgets: [SidebarWidgetInput!]!, adLimit: Int!): Settings!
     saveTransfermarktUrl(url: String!): Settings!
     syncYoutube: Int!
     syncMatches: BulkResult!

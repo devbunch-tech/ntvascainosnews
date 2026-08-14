@@ -1,5 +1,19 @@
-/** Casos de referência da geração de SEO. Uso: npm run seo:check */
-import { buildPostSeo, buildDescription, buildKeywords, categoryPath, tagPath } from "@ntv/shared";
+/**
+ * Casos de referência das regras que rodam sem banco: geração de SEO, caminhos
+ * de arquivo e a resolução da sidebar configurável.
+ *
+ * Uso: npm run seo:check
+ */
+import {
+  buildPostSeo,
+  buildDescription,
+  buildKeywords,
+  categoryPath,
+  tagPath,
+  resolveSidebarWidgets,
+  resolveAdLimit,
+  SIDEBAR_WIDGETS,
+} from "@ntv/shared";
 
 const post = {
   title: "Vasco anuncia a contratação do volante Santiago Sosa",
@@ -44,6 +58,42 @@ const checks: [string, boolean][] = [
   ["tag perde acento no caminho", tagPath("São Januário") === "/tag/sao-januario"],
   ["caminho ignora caixa", tagPath("VASCO DA GAMA") === tagPath("Vasco da Gama")],
   ["pontuação não vaza para a URL", tagPath("Sub-20: base") === "/tag/sub-20-base"],
+
+  // Sidebar configurável: este resolvedor decide o que o visitante vê. Um erro
+  // aqui some com widget no site sem ninguém ter mexido na configuração.
+  [
+    "sem configuração usa a ordem padrão",
+    resolveSidebarWidgets(null).map((w) => w.key).join() ===
+      SIDEBAR_WIDGETS.map((w) => w.key).join(),
+  ],
+  ["sem configuração tudo é visível", resolveSidebarWidgets(null).every((w) => w.visible)],
+  [
+    "a ordem salva manda",
+    resolveSidebarWidgets([{ key: "shop", visible: true }, { key: "clubStats", visible: true }])
+      .slice(0, 2)
+      .map((w) => w.key)
+      .join() === "shop,clubStats",
+  ],
+  [
+    "widget novo do código entra no fim, visível",
+    (() => {
+      const resolved = resolveSidebarWidgets([{ key: "shop", visible: false }]);
+      const fresh = resolved.find((w) => w.key === "clubStats");
+      return resolved.length === SIDEBAR_WIDGETS.length && fresh?.visible === true;
+    })(),
+  ],
+  ["chave desconhecida é descartada", !resolveSidebarWidgets([{ key: "hack", visible: true }]).some((w) => w.key === "hack")],
+  [
+    "chave repetida entra uma vez só",
+    resolveSidebarWidgets([{ key: "shop", visible: false }, { key: "shop", visible: true }]).filter(
+      (w) => w.key === "shop",
+    ).length === 1,
+  ],
+  ["oculto continua na lista, só invisível", resolveSidebarWidgets([{ key: "ads", visible: false }]).find((w) => w.key === "ads")?.visible === false],
+  ["limite de campanha aceita 0", resolveAdLimit(0) === 0],
+  ["limite de campanha tem teto", resolveAdLimit(999) === 10],
+  ["limite inválido cai no padrão", resolveAdLimit(null) === 2 && resolveAdLimit(NaN) === 2],
+  ["limite negativo vira 0", resolveAdLimit(-3) === 0],
 ];
 
 console.log();

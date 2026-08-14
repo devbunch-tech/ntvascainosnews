@@ -401,6 +401,52 @@ table.list tr:hover td {
 .toggle:last-child {
   border-bottom: 0;
 }
+
+/* Lista de widgets da sidebar (Configurações → Sidebar). */
+.widgetlist {
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+}
+.widgetlist__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--ntv-border-inner);
+}
+.widgetlist__item:last-child {
+  border-bottom: 0;
+}
+/* O Toggle traz a própria borda; dentro da linha ela duplicaria o divisor. */
+.widgetlist__item .toggle {
+  flex: 1;
+  border-bottom: 0;
+}
+.widgetlist__item.is-over {
+  background: var(--ntv-surface-mute);
+}
+.widgetlist__item.is-hidden .toggle__label {
+  color: var(--ntv-gray-500);
+  text-decoration: line-through;
+}
+.widgetlist__grip {
+  cursor: grab;
+  color: var(--ntv-gray-400);
+  font-size: 15px;
+  line-height: 1;
+}
+.widgetlist__moves {
+  display: flex;
+  gap: 2px;
+}
+.widgetlist__moves button {
+  padding: 2px 6px;
+  font-size: 13px;
+}
+.widgetlist__moves button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
 .toggle input {
   position: absolute;
   opacity: 0;

@@ -351,6 +351,14 @@ export const SETTINGS = gql`
         lastSyncAt
         lastError
       }
+      sidebar {
+        adLimit
+        widgets {
+          key
+          label
+          visible
+        }
+      }
     }
     rssSources {
       id
@@ -546,6 +554,21 @@ export const DISCONNECT_SOCIAL = gql`
   mutation DisconnectSocial($network: String!) {
     disconnectSocial(network: $network) {
       siteName
+    }
+  }
+`;
+
+export const SAVE_SIDEBAR = gql`
+  mutation SaveSidebar($widgets: [SidebarWidgetInput!]!, $adLimit: Int!) {
+    saveSidebar(widgets: $widgets, adLimit: $adLimit) {
+      sidebar {
+        adLimit
+        widgets {
+          key
+          label
+          visible
+        }
+      }
     }
   }
 `;
