@@ -28,7 +28,8 @@
     "dedupe:check": "npm run dedupe:check -w @ntv/api",
     "rss:dedupe": "npm run rss:dedupe -w @ntv/api --",
     "seo:check": "npm run seo:check -w @ntv/api",
-    "seo:backfill": "npm run seo:backfill -w @ntv/api"
+    "seo:backfill": "npm run seo:backfill -w @ntv/api",
+    "signing:add": "npm run signing:add -w @ntv/api --"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5",

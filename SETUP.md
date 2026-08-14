@@ -449,6 +449,36 @@ testado contra a API real** — o token é pessoal. Sem ele, o widget de estatí
 **Admin → Jogos** permite cadastro e edição manual a qualquer momento. O link de ingresso
 (`ticketUrl`) é preenchido lá e **nunca é sobrescrito** pela sincronização.
 
+## Contratações (widget "Últimas contratações")
+
+A lista vem do scrape do Transfermarkt (`npm run sync`), **não** de cadastro no admin.
+A fonte atrasa: um jogador pode já estar no BID da CBF e ainda não constar lá.
+
+Para cobrir essa janela:
+
+```bash
+npm run signing:add -- "Facundo Colidio" --posicao "Centroavante" --clube "ex-River Plate"
+npm run signing:add -- --listar          # confere o que está cadastrado
+npm run signing:add -- "Fulano" --saida  # registra saída em vez de chegada
+```
+
+Flags: `--posicao`, `--clube`, `--valor`, `--foto`, `--saida`, `--listar`. O widget exibe
+`posição · clube` e o valor; a idade não aparece.
+
+O registro entra com `order` negativo, à frente das que vieram do Transfermarkt (que
+recebem `order` 0..N) — assim o reforço novo encabeça a lista sem renumerar as outras.
+
+### Por que existe um `nameKey`
+
+As duas origens geram `externalId` diferentes por natureza (`manual:...` contra
+`tm-transfer:in:...`). Sem uma segunda chave, o mesmo jogador apareceria **duas vezes** no
+dia em que o Transfermarkt publicasse. O `nameKey` (nome sem acento, minúsculo, sem
+pontuação) é o que diz que se trata da mesma pessoa: o sync apaga o registro manual antes
+de gravar o da fonte. `npm run seo:check` cobre essa normalização.
+
+> Rodando contra produção, passe a connection string:
+> `MONGODB_URI="..." npm run signing:add -- "Nome" --clube "ex-Clube"`
+
 ## Sidebar configurável
 
 **Configurações → Sidebar** controla a ordem e a visibilidade dos widgets, e quantas

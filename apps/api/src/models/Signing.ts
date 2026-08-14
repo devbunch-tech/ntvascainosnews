@@ -5,6 +5,10 @@ const signingSchema = new Schema(
   {
     externalId: { type: String, default: null, index: true, sparse: true },
     playerName: { type: String, required: true },
+    /** Nome normalizado (sem acento, minúsculo). É por ele que o cadastro
+     *  manual e o registro do Transfermarkt se reconhecem como o mesmo
+     *  jogador — os `externalId` dos dois são diferentes por natureza. */
+    nameKey: { type: String, default: null, index: true },
     position: { type: String, default: null },
     age: { type: Number, default: null },
     club: { type: String, default: null },

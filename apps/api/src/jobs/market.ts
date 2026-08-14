@@ -145,6 +145,22 @@ export interface ParsedSigning {
   direction: "in" | "out";
 }
 
+/**
+ * Chave de identidade do jogador entre as duas origens.
+ *
+ * O cadastro manual e o Transfermarkt geram `externalId` diferentes por
+ * natureza (`manual:...` contra `tm-transfer:in:...`), então é o nome
+ * normalizado que diz que se trata da mesma pessoa.
+ */
+export function normalizeSigningName(name: string): string {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
 export function parseTransfers(html: string): ParsedSigning[] {
   const out: ParsedSigning[] = [];
   const seen = new Set<string>();
@@ -320,9 +336,22 @@ export async function syncMarket(): Promise<{
     // --- transferências confirmadas ---
     const signings = parseTransfers(transfersHtml);
     for (const [index, signing] of signings.entries()) {
+      const nameKey = normalizeSigningName(signing.playerName);
+
+      // O cadastro manual (`npm run signing:add`) cobre a janela em que o
+      // jogador já está no BID e o Transfermarkt ainda não publicou. Quando a
+      // fonte alcança, os dois registros descrevem a mesma pessoa com
+      // `externalId` diferentes — apagar o manual aqui é o que evita o mesmo
+      // reforço aparecendo duas vezes na sidebar.
+      await Signing.deleteMany({
+        direction: signing.direction,
+        nameKey,
+        externalId: { $ne: signing.externalId },
+      });
+
       await Signing.updateOne(
         { externalId: signing.externalId },
-        { $set: { ...signing, order: index, season: settings.matches?.season ?? null } },
+        { $set: { ...signing, nameKey, order: index, season: settings.matches?.season ?? null } },
         { upsert: true },
       );
     }

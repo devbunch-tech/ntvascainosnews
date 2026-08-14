@@ -18,7 +18,8 @@
     "dedupe:check": "tsx src/scripts/dedupe-check.ts",
     "rss:dedupe": "tsx src/scripts/dedupe-posts.ts",
     "seo:check": "tsx src/scripts/seo-check.ts",
-    "seo:backfill": "tsx src/scripts/backfill-seo.ts"
+    "seo:backfill": "tsx src/scripts/backfill-seo.ts",
+    "signing:add": "tsx src/scripts/add-signing.ts"
   },
   "dependencies": {
     "@apollo/server": "^5.0.0",

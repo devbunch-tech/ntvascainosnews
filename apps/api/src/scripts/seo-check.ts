@@ -14,6 +14,7 @@ import {
   resolveAdLimit,
   SIDEBAR_WIDGETS,
 } from "@ntv/shared";
+import { normalizeSigningName } from "../jobs/market.js";
 
 const post = {
   title: "Vasco anuncia a contratação do volante Santiago Sosa",
@@ -94,6 +95,15 @@ const checks: [string, boolean][] = [
   ["limite de campanha tem teto", resolveAdLimit(999) === 10],
   ["limite inválido cai no padrão", resolveAdLimit(null) === 2 && resolveAdLimit(NaN) === 2],
   ["limite negativo vira 0", resolveAdLimit(-3) === 0],
+
+  // Identidade do jogador entre o cadastro manual e o Transfermarkt. Se esta
+  // normalização errar, o reforço aparece duas vezes na sidebar quando a fonte
+  // finalmente publicar — e ninguém liga uma coisa à outra.
+  ["acento não separa o mesmo jogador", normalizeSigningName("Andrés Gómez") === normalizeSigningName("Andres Gomez")],
+  ["caixa não separa", normalizeSigningName("SANTIAGO SOSA") === normalizeSigningName("Santiago Sosa")],
+  ["espaço extra não separa", normalizeSigningName("  Facundo   Colidio ") === "facundo colidio"],
+  ["pontuação não separa", normalizeSigningName("Vitor Jr.") === normalizeSigningName("Vitor Jr")],
+  ["jogadores diferentes não colidem", normalizeSigningName("Santiago Sosa") !== normalizeSigningName("Facundo Colidio")],
 ];
 
 console.log();
