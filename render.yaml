@@ -1,19 +1,14 @@
 # Blueprint da apps/api no Render. Em Render → New → Blueprint, aponte para este
-# repositório: ele lê este arquivo e cria o serviço já configurado.
+# repositório: ele lê este arquivo e cria os serviços já configurados.
 #
 # O banco NÃO está aqui de propósito — o Render não oferece MongoDB gerenciado.
 # Use o MongoDB Atlas e cole a connection string em MONGODB_URI.
 # Passo a passo completo em docs/deploy.md.
 #
-# ESTE ARQUIVO ESTÁ NO PLANO FREE, para validar o circuito antes de gastar.
-# Três consequências, todas do plano e nenhuma do código (ver docs/deploy.md):
-#   1. Sem disco persistente: as imagens enviadas pelo admin somem a cada
-#      redeploy, restart ou hibernação, e os posts ficam apontando para URL morta.
-#   2. Sem cron: o Render não tem cron gratuito. A ingestão de RSS e o sync
-#      precisam ser disparados à mão (veja "Rodar os jobs no free" em docs/deploy.md).
-#   3. Hiberna após 15 min sem tráfego; a visita seguinte espera ~1 min.
-# Para produção de verdade, troque `plan: free` por `starter`, descomente o bloco
-# `disk:` e os dois serviços de cron no fim do arquivo.
+# Configuração de produção: plano pago, disco para os uploads e os dois crons.
+# O disco é 1 GB de propósito — sobra para as imagens do admin e custa pouco.
+# Disco no Render pode crescer depois, mas não encolher, então começar pequeno
+# é a decisão reversível.
 services:
   - name: ntv-api
     type: web
@@ -22,13 +17,16 @@ services:
     # O contexto é a raiz do monorepo: o Dockerfile precisa do package-lock.json
     # e do packages/shared, que ficam fora de apps/api.
     dockerContext: .
+    # Oregon porque é onde está o cluster do Atlas. Banco e API no mesmo lugar
+    # foi o que derrubou o tempo da home de 1,3s para 0,4s — cada consulta
+    # deixou de atravessar o continente.
     region: oregon
-    plan: free
+    plan: starter
     healthCheckPath: /health
-    # disk:
-    #   name: uploads
-    #   mountPath: /data
-    #   sizeGB: 5
+    disk:
+      name: uploads
+      mountPath: /data
+      sizeGB: 1
     envVars:
       # Connection string do Atlas. `sync: false` = o Render pergunta na criação
       # e guarda como secret, em vez de deixar no repositório.
@@ -38,46 +36,43 @@ services:
       - key: JWT_SECRET
         generateValue: true
       # Domínio público desta API — entra na URL das imagens enviadas.
-      # Ajuste se você apontar um domínio próprio para o serviço.
       - key: PUBLIC_API_URL
         value: https://api.ntvascainosnews.com.br
       # Origens de browser autorizadas: admin e portal. O SSR do Hydrogen é
       # server-to-server, não manda Origin e não precisa estar listado.
       - key: CORS_ORIGINS
         value: https://admin.ntvascainosnews.com.br,https://ntvascainosnews.com.br,https://www.ntvascainosnews.com.br
-      # No free não há disco montado, então os uploads ficam no filesystem
-      # efêmero do container. Com disco, isto vira /data/uploads.
+      # Aponta para o disco persistente montado acima.
       - key: UPLOADS_DIR
-        value: ./uploads
+        value: /data/uploads
 
-# --- Ao migrar para o plano pago, descomente daqui para baixo ---
-#
-#  # Ingestão de RSS: é o que traz notícia nova sem ninguém digitar.
-#  - name: ntv-rss
-#    type: cron
-#    runtime: docker
-#    dockerfilePath: ./apps/api/Dockerfile
-#    dockerContext: .
-#    schedule: "*/15 * * * *"
-#    dockerCommand: npm run rss -w @ntv/api
-#    envVars:
-#      - key: MONGODB_URI
-#        fromService:
-#          type: web
-#          name: ntv-api
-#          envVarKey: MONGODB_URI
-#
-#  # Vídeos do YouTube e jogos. De hora em hora é suficiente.
-#  - name: ntv-sync
-#    type: cron
-#    runtime: docker
-#    dockerfilePath: ./apps/api/Dockerfile
-#    dockerContext: .
-#    schedule: "17 * * * *"
-#    dockerCommand: npm run sync -w @ntv/api
-#    envVars:
-#      - key: MONGODB_URI
-#        fromService:
-#          type: web
-#          name: ntv-api
-#          envVarKey: MONGODB_URI
+  # Ingestão de RSS: é o que traz notícia nova sem ninguém digitar.
+  - name: ntv-rss
+    type: cron
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    schedule: "*/15 * * * *"
+    dockerCommand: npm run rss -w @ntv/api
+    envVars:
+      # Mesmo banco do serviço web, sem precisar colar a string de novo.
+      - key: MONGODB_URI
+        fromService:
+          type: web
+          name: ntv-api
+          envVarKey: MONGODB_URI
+
+  # Vídeos do YouTube e jogos. De hora em hora é suficiente.
+  - name: ntv-sync
+    type: cron
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    schedule: "17 * * * *"
+    dockerCommand: npm run sync -w @ntv/api
+    envVars:
+      - key: MONGODB_URI
+        fromService:
+          type: web
+          name: ntv-api
+          envVarKey: MONGODB_URI

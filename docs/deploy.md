@@ -39,33 +39,44 @@ O que o blueprint define, e por quê:
 
 | Item | Valor | Por quê |
 | --- | --- | --- |
-| Plano | `free` | Para validar o circuito antes de gastar — veja as três consequências abaixo |
+| Plano | `starter` | O free hiberna, não tem disco e não permite cron |
+| Disco | `/data`, 1 GB | Onde ficam avatares, capas e fotos de produto |
 | Health check | `/health` | O Render espera 200 aqui antes de mandar tráfego |
 | `JWT_SECRET` | gerado | Assina os logins; trocar derruba as sessões |
 
-### O que o plano free custa em funcionalidade
+### Por que não o plano free
 
-Nada disso é limitação do código — é do plano, e some ao trocar para `starter`:
+O free existe e serve para validar o circuito, mas cobra em funcionalidade —
+nada disso é limitação do código:
 
 1. **Sem disco persistente.** O filesystem é efêmero: toda imagem enviada pelo admin
    desaparece no próximo redeploy, restart ou hibernação, e o post continua apontando
-   para uma URL morta. Enquanto estiver no free, prefira imagem por URL externa.
+   para uma URL morta.
 2. **Sem cron.** O Render não tem cron job gratuito — só web services, Postgres e
-   Key Value. A ingestão de RSS não roda sozinha (veja abaixo).
+   Key Value. A ingestão de RSS não roda sozinha.
 3. **Hiberna após 15 min sem tráfego.** A visita seguinte espera ~1 min para acordar,
    e como o SSR do portal depende da API, quem paga essa espera é o visitante.
 
-Para produção, troque `plan: free` por `starter` no [`render.yaml`](../render.yaml),
-descomente o bloco `disk:` e os dois serviços de cron no fim do arquivo.
+**O upgrade exige cartão cadastrado antes.** A API do Render recusa a troca de plano
+com `Plan requires payment information on file` enquanto não houver forma de pagamento
+em Workspace Settings → Billing.
 
-### Rodar os jobs enquanto estiver no free
+### Rodar os jobs à mão
 
-Da sua máquina, apontando para o Atlas — é o mesmo comando que o cron rodaria:
+Independente do plano, dá para disparar da sua máquina apontando para o Atlas:
 
 ```bash
 MONGODB_URI="mongodb+srv://..." npm run rss -w @ntv/api    # notícias novas
 MONGODB_URI="mongodb+srv://..." npm run sync -w @ntv/api   # vídeos, jogos, mercado
 ```
+
+### Onde fica o banco
+
+O cluster do Atlas está em **AWS us-west-2 (Oregon)**, no mesmo lugar da API, e não
+em São Paulo. Parece contraintuitivo para um site brasileiro, mas o visitante não
+fala com o banco: ele fala com a borda do Oxygen, que fala com a API, que fala com o
+banco. Co-locar API e banco eliminou uma travessia de continente por consulta e
+derrubou a home de 1,29s para ~0,4s.
 
 Depois de subir, ajuste `PUBLIC_API_URL` e `CORS_ORIGINS` para os domínios reais
 (o blueprint vem com os de exemplo). `PUBLIC_API_URL` entra na URL das imagens enviadas,
