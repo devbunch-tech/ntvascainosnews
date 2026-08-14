@@ -993,6 +993,12 @@ a.chip {
   align-items: center;
   gap: 8px;
 }
+/* O logo virou link; `flex` no âncora tira o espaço de descida que o <img>
+   inline deixaria embaixo, que engordaria a área clicável e desalinharia a
+   linha. */
+.footer__by a {
+  display: flex;
+}
 .footer__by img {
   height: 16px;
 }

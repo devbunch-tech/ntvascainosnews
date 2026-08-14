@@ -77,7 +77,9 @@ export function Footer({
           </Link>
           <span className="footer__by">
             Desenvolvido por
-            <img src="/assets/bunch.png" alt="Bunch" />
+            <a href="https://agbunch.com" target="_blank" rel="noopener noreferrer">
+              <img src="/assets/bunch.png" alt="Bunch" />
+            </a>
           </span>
         </div>
       </div>
