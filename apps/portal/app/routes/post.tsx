@@ -15,6 +15,7 @@ import { ShareButtons } from "~/components/ShareButtons";
 import { Comments, type CommentItem } from "~/components/Comments";
 import type { PostCardData } from "~/components/PostCards";
 import { gql } from "~/lib/graphql.server";
+import { CACHE_ARTICLE, pageCacheHeaders } from "~/lib/cache.server";
 import { getEnv } from "~/lib/env.server";
 import { POST_QUERY } from "~/lib/queries";
 
@@ -115,11 +116,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   // Em produção a URL pública vem de PUBLIC_SITE_URL; em dev cai no host da request.
   const origin = env.PUBLIC_SITE_URL || requestUrl.origin;
 
-  return {
-    ...result,
-    canonicalUrl: `${origin}/noticia/${result.post.slug}`,
-    apiUrl: env.PUBLIC_GRAPHQL_URL.replace(/\/graphql\/?$/, ""),
-  };
+  return data(
+    {
+      ...result,
+      canonicalUrl: `${origin}/noticia/${result.post.slug}`,
+      apiUrl: env.PUBLIC_GRAPHQL_URL.replace(/\/graphql\/?$/, ""),
+    },
+    { headers: pageCacheHeaders(request, CACHE_ARTICLE) },
+  );
+}
+
+export function headers({ loaderHeaders }: { loaderHeaders: Headers }) {
+  return loaderHeaders;
 }
 
 export default function PostRoute() {

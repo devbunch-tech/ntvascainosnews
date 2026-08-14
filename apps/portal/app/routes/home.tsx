@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useFetcher, useLoaderData, type LoaderFunctionArgs, type MetaFunction } from "react-router";
+import { data, useFetcher, useLoaderData, type LoaderFunctionArgs, type MetaFunction } from "react-router";
 import { Header, Ticker, type SessionUser } from "~/components/Header";
 import { Footer } from "~/components/Footer";
 import { useSite } from "~/lib/site";
@@ -7,6 +7,7 @@ import { HeroCard, NewsRow, TeamCard, type PostCardData } from "~/components/Pos
 import { Sidebar, type SidebarData } from "~/components/Sidebar";
 import { pageMeta } from "~/lib/seo";
 import { gql } from "~/lib/graphql.server";
+import { CACHE_HOME, pageCacheHeaders } from "~/lib/cache.server";
 import { HOME_QUERY, LATEST_PAGE_QUERY } from "~/lib/queries";
 
 interface HomeData {
@@ -30,8 +31,14 @@ export const meta: MetaFunction = ({ matches }) =>
   });
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const data = await gql<HomeData>(HOME_QUERY, { variables: { latestLimit: 12 }, request });
-  return data;
+  const payload = await gql<HomeData>(HOME_QUERY, { variables: { latestLimit: 12 }, request });
+  return data(payload, { headers: pageCacheHeaders(request, CACHE_HOME) });
+}
+
+/** Sem isto o React Router descarta os headers do loader e a página volta a
+ *  ser `uncacheable` na borda. */
+export function headers({ loaderHeaders }: { loaderHeaders: Headers }) {
+  return loaderHeaders;
 }
 
 const PAGE_SIZE = 12;

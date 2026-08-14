@@ -1,8 +1,9 @@
-import { useLoaderData, type LoaderFunctionArgs, type MetaFunction } from "react-router";
+import { data, useLoaderData, type LoaderFunctionArgs, type MetaFunction } from "react-router";
 import { NewsListPage, PAGE_SIZE } from "~/components/NewsListPage";
 import type { PostCardData } from "~/components/PostCards";
 import type { SessionUser } from "~/components/Header";
 import { pageMeta } from "~/lib/seo";
+import { CACHE_LIST, pageCacheHeaders } from "~/lib/cache.server";
 import { gql } from "~/lib/graphql.server";
 import { NEWS_LIST_QUERY } from "~/lib/queries";
 
@@ -23,11 +24,15 @@ export const meta: MetaFunction = ({ matches }) =>
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const page = Math.max(1, Number(new URL(request.url).searchParams.get("pagina") ?? 1));
-  const data = await gql<Data>(NEWS_LIST_QUERY, {
+  const payload = await gql<Data>(NEWS_LIST_QUERY, {
     request,
     variables: { filter: {}, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE },
   });
-  return { ...data, page };
+  return data({ ...payload, page }, { headers: pageCacheHeaders(request, CACHE_LIST) });
+}
+
+export function headers({ loaderHeaders }: { loaderHeaders: Headers }) {
+  return loaderHeaders;
 }
 
 export default function NoticiasRoute() {
