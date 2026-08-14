@@ -53,6 +53,6 @@ export function pageCacheHeaders(request: Request, window: CacheWindow): Headers
     // O que realmente liga o full-page cache do Oxygen: ele lê este header
     // próprio, não o Cache-Control padrão, e exige um `max-age` explícito.
     "Oxygen-Cache-Control": `public, max-age=${window.sMaxAge}, stale-while-revalidate=${window.staleWhileRevalidate}`,
-    Vary: "Cookie",
+    // EXPERIMENTO 2: Oxygen-Cache-Control presente, Vary ausente.
   };
 }
