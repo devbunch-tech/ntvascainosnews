@@ -51,6 +51,7 @@ export function Header({ user }: { user?: SessionUser | null }) {
   const site = useSite();
   const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const searchInput = useRef<HTMLInputElement>(null);
 
   const youtubeUrl = site.social.find((s) => s.network === "youtube")?.url ?? YOUTUBE_FALLBACK;
@@ -59,8 +60,22 @@ export function Header({ user }: { user?: SessionUser | null }) {
     if (searchOpen) searchInput.current?.focus();
   }, [searchOpen]);
 
-  // Trocar de página fecha a busca aberta no mobile.
-  useEffect(() => setSearchOpen(false), [location.pathname]);
+  // Trocar de página fecha a busca e o menu abertos no mobile.
+  useEffect(() => {
+    setSearchOpen(false);
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  // Esc fecha o menu: quem abriu sem querer espera essa saída antes de procurar
+  // o botão de fechar.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
   const renderNav = (className: string) =>
     NAV.map((item) =>
@@ -85,6 +100,26 @@ export function Header({ user }: { user?: SessionUser | null }) {
     <header className="header">
       <div className="wrap">
         <div className="header__bar">
+          {/* Só existe no mobile; no desktop a navegação fica na própria barra. */}
+          <button
+            type="button"
+            className="header__icon header__burger"
+            aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={menuOpen}
+            aria-controls="menu-mobile"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? (
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            )}
+          </button>
+
           <Link to="/" className="header__logo" aria-label={`${site.siteName} — início`}>
             <img src="/assets/logo.svg" alt={site.siteName} />
           </Link>
@@ -121,12 +156,12 @@ export function Header({ user }: { user?: SessionUser | null }) {
                 <Link to="/perfil" className="header__user" aria-label={`Perfil de ${user.name}`}>
                   <Avatar name={user.name} url={user.avatarUrl} />
                 </Link>
-                <Form method="post" action="/sair">
+                <Form method="post" action="/sair" className="header__auth">
                   <button className="ntv-btn header__cta header__cta--ghost">Logout</button>
                 </Form>
               </>
             ) : (
-              <Link to="/entrar" className="ntv-btn header__cta">
+              <Link to="/entrar" className="ntv-btn header__cta header__auth">
                 Login
               </Link>
             )}
@@ -147,9 +182,34 @@ export function Header({ user }: { user?: SessionUser | null }) {
           </Form>
         ) : null}
 
-        <nav className="mobilenav" aria-label="Seções">
-          {renderNav("mobilenav__link")}
-        </nav>
+        {/* O painel só é montado quando aberto: fechado, nada dele fica
+            alcançável por teclado nem lido por leitor de tela. */}
+        {menuOpen ? (
+          <div className="mobilemenu" id="menu-mobile">
+            <nav className="mobilemenu__nav" aria-label="Seções">
+              {renderNav("mobilemenu__link")}
+            </nav>
+
+            <div className="mobilemenu__foot">
+              {user ? (
+                <Form method="post" action="/sair" className="mobilemenu__form">
+                  <button className="ntv-btn mobilemenu__action">Logout</button>
+                </Form>
+              ) : (
+                <Link to="/entrar" className="ntv-btn mobilemenu__action">
+                  Login
+                </Link>
+              )}
+              <button
+                type="button"
+                className="ntv-btn mobilemenu__action mobilemenu__action--ghost"
+                onClick={() => setMenuOpen(false)}
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </header>
   );

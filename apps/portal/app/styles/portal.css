@@ -25,6 +25,8 @@
   align-items: center;
   gap: 16px;
   height: 56px;
+  /* Âncora do logo centralizado no mobile. */
+  position: relative;
 }
 .header__logo img {
   height: 40px;
@@ -101,26 +103,60 @@
   object-fit: cover;
 }
 
-.mobilenav {
-  display: flex;
-  gap: 18px;
-  overflow-x: auto;
+/* Menu sanduíche do mobile. Substituiu a faixa rolável horizontal: ali os
+   últimos itens ficavam fora da tela e ninguém descobria que havia mais. */
+.mobilemenu {
   border-top: 1px solid var(--ntv-dark-line);
-  padding: 10px 0;
-  scrollbar-width: none;
+  padding: 6px 0 14px;
 }
-.mobilenav::-webkit-scrollbar {
-  display: none;
+.mobilemenu__nav {
+  display: flex;
+  flex-direction: column;
 }
-.mobilenav a {
+.mobilemenu__link {
   color: var(--ntv-dark-text);
   font-weight: 700;
-  font-size: 11.5px;
+  font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  white-space: nowrap;
+  padding: 13px 2px;
+  border-bottom: 1px solid var(--ntv-dark-line);
 }
-.mobilenav a[aria-current="page"] {
+.mobilemenu__link[aria-current="page"] {
+  color: #fff;
+}
+.mobilemenu__foot {
+  display: flex;
+  gap: 8px;
+  padding-top: 14px;
+}
+.mobilemenu__form {
+  flex: 1;
+  display: flex;
+}
+/* O menu fica sobre fundo preto, então nem `.ntv-btn` (fundo escuro) nem
+   `.ntv-btn--outline` (texto escuro) servem: os dois sumiriam. As cores são
+   invertidas aqui, como já é feito no `.header__cta`. */
+.mobilemenu__action {
+  flex: 1;
+  text-align: center;
+  background: #fff;
+  border-color: #fff;
+  color: var(--ntv-ink);
+}
+.mobilemenu__action:hover {
+  background: var(--ntv-dark-text);
+  border-color: var(--ntv-dark-text);
+  color: var(--ntv-ink);
+}
+.mobilemenu__action--ghost {
+  background: transparent;
+  border-color: var(--ntv-dark-text-dim);
+  color: #fff;
+}
+.mobilemenu__action--ghost:hover {
+  background: transparent;
+  border-color: #fff;
   color: #fff;
 }
 
@@ -532,6 +568,16 @@
   border-top: 1px solid var(--ntv-border-list);
   border-bottom: 1px solid var(--ntv-border-list);
   flex-wrap: wrap;
+}
+/* Sem isto o bloco de texto entra no flex com base igual à largura do texto
+   inteiro numa linha só. Como `.byline` tem `flex-wrap: wrap`, ele não cabia ao
+   lado do avatar e descia inteiro para a linha seguinte — o nome da fonte
+   aparecia embaixo do círculo em vez de ao lado dele. `min-width: 0` é a metade
+   que importa: sem ele, o mínimo do item é o do conteúdo e o encolhimento não
+   acontece. */
+.byline__who {
+  flex: 1;
+  min-width: 0;
 }
 .byline__actions {
   margin-left: auto;
@@ -1017,10 +1063,13 @@ a.chip {
     display: flex;
   }
   .header__icon--search,
-  .header__searchdrawer {
+  .header__searchdrawer,
+  .mobilemenu {
     display: none;
   }
-  .mobilenav {
+  /* Precisa dos dois nomes: `.header__icon` (0,1,0) é declarado depois deste
+     bloco no arquivo e, com especificidade igual, venceria por ordem. */
+  .header__icon.header__burger {
     display: none;
   }
   .columns {
@@ -1630,20 +1679,6 @@ a.chip {
 .header__user {
   display: inline-flex;
 }
-.mobilenav__link {
-  color: var(--ntv-dark-text);
-  font-weight: 700;
-  font-size: 11.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  padding: 4px 0;
-  border-bottom: 2px solid transparent;
-}
-.mobilenav__link[aria-current="page"] {
-  color: #fff;
-  border-bottom-color: #fff;
-}
 
 /* Print do cliente: respiro entre o topo e o primeiro bloco de conteúdo. */
 .main {
@@ -1951,11 +1986,35 @@ tr.zone--rebaixamento .standings__pos::before {
 
   /* --- Header compacto e fixo, como barra de app --- */
   .header__bar {
-    height: 62px;
+    /* Acompanha o logo maior sem apertá-lo contra as bordas. */
+    height: 76px;
     gap: 10px;
   }
   .header__logo img {
-    height: 34px;
+    /* O logo tem proporção 2.73:1 — a 54px de altura ele ocupa ~148px, e sobra
+       espaço para o hambúrguer à esquerda e busca + avatar à direita. O clamp
+       segura a barra em telas de 320px, onde 148px não caberiam. */
+    height: clamp(40px, 14vw, 54px);
+  }
+  /* Centralização absoluta, não por flex: os dois lados da barra têm larguras
+     diferentes (hambúrguer à esquerda; busca e avatar à direita), e centralizar
+     pelo flex deixaria o logo visivelmente fora do meio. */
+  .header__logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  /* Fora do fluxo o logo não ocupa espaço: o `auto` joga as ações para a
+     direita e o hambúrguer fica na esquerda. */
+  .header__burger {
+    margin-right: auto;
+  }
+  /* Login/Logout moram no menu no mobile; na barra não caberiam ao lado do
+     logo maior. O seletor precisa do `a.` para vencer o `a.ntv-btn`
+     (0,1,1) do tokens.css — o botão de Login é uma âncora. */
+  .header__auth,
+  a.header__auth {
+    display: none;
   }
   .header__actions {
     gap: 4px;
@@ -1965,17 +2024,6 @@ tr.zone--rebaixamento .standings__pos::before {
     font-size: 10.5px;
     min-height: 38px;
   }
-  .mobilenav {
-    gap: 16px;
-    padding: 8px 0 10px;
-    /* Rolagem por "encaixe" deixa a navegação com toque de app. */
-    scroll-snap-type: x proximity;
-    -webkit-overflow-scrolling: touch;
-  }
-  .mobilenav__link {
-    scroll-snap-align: start;
-  }
-
   /* --- Alvos de toque: mínimo de 44px em tudo que é clicável --- */
   .ntv-btn,
   .chip,

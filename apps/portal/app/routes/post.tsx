@@ -185,7 +185,7 @@ export default function PostRoute() {
 
             <div className="byline">
               <Avatar name={post.author?.name ?? "NTV"} url={post.author?.avatarUrl} size={40} />
-              <div>
+              <div className="byline__who">
                 <strong style={{ color: "var(--ntv-ink)", fontSize: 14 }}>
                   {post.author?.name ?? post.source.name ?? "Redação NTV"}{" "}
                   {post.author && post.author.role !== "reader" ? (
