@@ -60,6 +60,20 @@
   font-weight: 800;
   font-size: 9.5px;
 }
+/* O nome vira link para a própria conta; herda a cor da barra escura, que o
+   `a { color: var(--ntv-ink) }` global deixaria preto sobre preto. */
+.side__me {
+  color: #fff;
+  text-decoration: none;
+}
+/* Precisa vencer o `a:hover:not(...)` do tokens.css, que tem especificidade
+   (0,2,1) e cinzaria o nome sobre a barra preta. */
+.side__foot a.side__me:hover {
+  color: var(--ntv-dark-text-dim);
+}
+.side__me.is-active small {
+  color: #fff;
+}
 
 .tabbar {
   position: fixed;

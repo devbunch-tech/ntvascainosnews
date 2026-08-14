@@ -13,6 +13,7 @@ import { Users } from "./pages/Users";
 import { Settings } from "./pages/Settings";
 import { Matches } from "./pages/Matches";
 import { Ads } from "./pages/Ads";
+import { Account } from "./pages/Account";
 
 interface Me {
   id: string;
@@ -55,10 +56,12 @@ function Shell({ me, children }: { me: Me; children: React.ReactNode }) {
           ))}
         </nav>
         <div className="side__foot">
-          <div>
+          {/* O nome é a porta da conta: é onde se procura trocar a própria senha,
+              e Configurações não serve porque exige settings:manage. */}
+          <NavLink to="/minha-conta" className="side__me" title="Minha conta">
             {me.name}
             <small>{me.role}</small>
-          </div>
+          </NavLink>
           <button
             className="linkbtn"
             style={{ marginLeft: "auto", color: "var(--ntv-dark-text-dim)" }}
@@ -171,6 +174,8 @@ export function App() {
         <Route path="/noticias/nova" element={<PostEditor me={me} />} />
         <Route path="/noticias/:slug" element={<PostEditor me={me} />} />
         <Route path="/produtos" element={<Products />} />
+        {/* Sem checagem de papel: é a própria conta de quem está logado. */}
+        <Route path="/minha-conta" element={<Account me={me} />} />
         <Route
           path="/jogos"
           element={can(me.role, "settings:manage") ? <Matches /> : <Navigate to="/" replace />}

@@ -550,6 +550,12 @@ export const DISCONNECT_SOCIAL = gql`
   }
 `;
 
+export const CHANGE_PASSWORD = gql`
+  mutation ChangePassword($currentPassword: String!, $newPassword: String!) {
+    changePassword(currentPassword: $currentPassword, newPassword: $newPassword)
+  }
+`;
+
 export const CATEGORIES = gql`
   query Categories {
     categories {

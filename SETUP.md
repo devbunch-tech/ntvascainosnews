@@ -48,6 +48,16 @@ npm run dev               # api + admin + portal em paralelo
 
 O admin recusa login de `reader` — é o comportamento esperado.
 
+**Trocar a própria senha:** no admin, clique no seu nome no rodapé da barra lateral →
+**Minha conta**. A página fica **fora de Configurações** de propósito: aquela exige
+`settings:manage`, e trocar a própria senha é direito de qualquer pessoa logada — a
+mutation `changePassword` age sobre `ctx.user`, nunca sobre outra conta.
+
+A senha do seed é pública neste documento; **troque a do admin antes de publicar**.
+
+Alterar a senha não derruba a sessão em curso: o JWT que já está no navegador vale até
+expirar. Para cortar todas as sessões de uma vez, o caminho é trocar o `JWT_SECRET`.
+
 ## Scripts
 
 | Comando | O que faz |
