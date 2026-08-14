@@ -45,6 +45,6 @@ export function pageCacheHeaders(request: Request, window: CacheWindow): Headers
 
   return {
     "Cache-Control": `public, max-age=0, s-maxage=${window.sMaxAge}, stale-while-revalidate=${window.staleWhileRevalidate}`,
-    Vary: "Cookie",
+    // EXPERIMENTO: sem Vary para descobrir se é ele que inibe o cache do Oxygen.
   };
 }
