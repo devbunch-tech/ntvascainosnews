@@ -4,6 +4,16 @@
 # O banco NÃO está aqui de propósito — o Render não oferece MongoDB gerenciado.
 # Use o MongoDB Atlas e cole a connection string em MONGODB_URI.
 # Passo a passo completo em docs/deploy.md.
+#
+# ESTE ARQUIVO ESTÁ NO PLANO FREE, para validar o circuito antes de gastar.
+# Três consequências, todas do plano e nenhuma do código (ver docs/deploy.md):
+#   1. Sem disco persistente: as imagens enviadas pelo admin somem a cada
+#      redeploy, restart ou hibernação, e os posts ficam apontando para URL morta.
+#   2. Sem cron: o Render não tem cron gratuito. A ingestão de RSS e o sync
+#      precisam ser disparados à mão (veja "Rodar os jobs no free" em docs/deploy.md).
+#   3. Hiberna após 15 min sem tráfego; a visita seguinte espera ~1 min.
+# Para produção de verdade, troque `plan: free` por `starter`, descomente o bloco
+# `disk:` e os dois serviços de cron no fim do arquivo.
 services:
   - name: ntv-api
     type: web
@@ -13,15 +23,12 @@ services:
     # e do packages/shared, que ficam fora de apps/api.
     dockerContext: .
     region: oregon
-    # `starter` e não `free`: o plano gratuito não tem disco persistente, e sem
-    # disco todo upload de imagem some no deploy seguinte. Ele também hiberna
-    # por inatividade, o que faria a primeira visita ao portal esperar o cold start.
-    plan: starter
+    plan: free
     healthCheckPath: /health
-    disk:
-      name: uploads
-      mountPath: /data
-      sizeGB: 5
+    # disk:
+    #   name: uploads
+    #   mountPath: /data
+    #   sizeGB: 5
     envVars:
       # Connection string do Atlas. `sync: false` = o Render pergunta na criação
       # e guarda como secret, em vez de deixar no repositório.
@@ -38,37 +45,39 @@ services:
       # server-to-server, não manda Origin e não precisa estar listado.
       - key: CORS_ORIGINS
         value: https://admin.ntvascainosnews.com.br,https://ntvascainosnews.com.br,https://www.ntvascainosnews.com.br
+      # No free não há disco montado, então os uploads ficam no filesystem
+      # efêmero do container. Com disco, isto vira /data/uploads.
       - key: UPLOADS_DIR
-        value: /data/uploads
+        value: ./uploads
 
-  # Ingestão de RSS: é o que traz notícia nova sem ninguém digitar. Sem este cron,
-  # o site só mostra o que for publicado à mão no admin.
-  - name: ntv-rss
-    type: cron
-    runtime: docker
-    dockerfilePath: ./apps/api/Dockerfile
-    dockerContext: .
-    schedule: "*/15 * * * *"
-    dockerCommand: npm run rss -w @ntv/api
-    envVars:
-      # Mesmo banco do serviço web, sem precisar colar a string de novo.
-      - key: MONGODB_URI
-        fromService:
-          type: web
-          name: ntv-api
-          envVarKey: MONGODB_URI
-
-  # Vídeos do YouTube e jogos. De hora em hora é suficiente.
-  - name: ntv-sync
-    type: cron
-    runtime: docker
-    dockerfilePath: ./apps/api/Dockerfile
-    dockerContext: .
-    schedule: "17 * * * *"
-    dockerCommand: npm run sync -w @ntv/api
-    envVars:
-      - key: MONGODB_URI
-        fromService:
-          type: web
-          name: ntv-api
-          envVarKey: MONGODB_URI
+# --- Ao migrar para o plano pago, descomente daqui para baixo ---
+#
+#  # Ingestão de RSS: é o que traz notícia nova sem ninguém digitar.
+#  - name: ntv-rss
+#    type: cron
+#    runtime: docker
+#    dockerfilePath: ./apps/api/Dockerfile
+#    dockerContext: .
+#    schedule: "*/15 * * * *"
+#    dockerCommand: npm run rss -w @ntv/api
+#    envVars:
+#      - key: MONGODB_URI
+#        fromService:
+#          type: web
+#          name: ntv-api
+#          envVarKey: MONGODB_URI
+#
+#  # Vídeos do YouTube e jogos. De hora em hora é suficiente.
+#  - name: ntv-sync
+#    type: cron
+#    runtime: docker
+#    dockerfilePath: ./apps/api/Dockerfile
+#    dockerContext: .
+#    schedule: "17 * * * *"
+#    dockerCommand: npm run sync -w @ntv/api
+#    envVars:
+#      - key: MONGODB_URI
+#        fromService:
+#          type: web
+#          name: ntv-api
+#          envVarKey: MONGODB_URI

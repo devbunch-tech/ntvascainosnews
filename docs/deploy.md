@@ -39,12 +39,33 @@ O que o blueprint define, e por quê:
 
 | Item | Valor | Por quê |
 | --- | --- | --- |
-| Plano | `starter` | O gratuito não tem disco persistente (uploads sumiriam) e hiberna |
-| Disco | `/data`, 5 GB | Onde ficam avatares, capas e fotos de produto |
+| Plano | `free` | Para validar o circuito antes de gastar — veja as três consequências abaixo |
 | Health check | `/health` | O Render espera 200 aqui antes de mandar tráfego |
 | `JWT_SECRET` | gerado | Assina os logins; trocar derruba as sessões |
-| Cron `ntv-rss` | a cada 15 min | Traz notícia nova sem ninguém digitar |
-| Cron `ntv-sync` | de hora em hora | Vídeos do YouTube, jogos e mercado |
+
+### O que o plano free custa em funcionalidade
+
+Nada disso é limitação do código — é do plano, e some ao trocar para `starter`:
+
+1. **Sem disco persistente.** O filesystem é efêmero: toda imagem enviada pelo admin
+   desaparece no próximo redeploy, restart ou hibernação, e o post continua apontando
+   para uma URL morta. Enquanto estiver no free, prefira imagem por URL externa.
+2. **Sem cron.** O Render não tem cron job gratuito — só web services, Postgres e
+   Key Value. A ingestão de RSS não roda sozinha (veja abaixo).
+3. **Hiberna após 15 min sem tráfego.** A visita seguinte espera ~1 min para acordar,
+   e como o SSR do portal depende da API, quem paga essa espera é o visitante.
+
+Para produção, troque `plan: free` por `starter` no [`render.yaml`](../render.yaml),
+descomente o bloco `disk:` e os dois serviços de cron no fim do arquivo.
+
+### Rodar os jobs enquanto estiver no free
+
+Da sua máquina, apontando para o Atlas — é o mesmo comando que o cron rodaria:
+
+```bash
+MONGODB_URI="mongodb+srv://..." npm run rss -w @ntv/api    # notícias novas
+MONGODB_URI="mongodb+srv://..." npm run sync -w @ntv/api   # vídeos, jogos, mercado
+```
 
 Depois de subir, ajuste `PUBLIC_API_URL` e `CORS_ORIGINS` para os domínios reais
 (o blueprint vem com os de exemplo). `PUBLIC_API_URL` entra na URL das imagens enviadas,
