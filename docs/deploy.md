@@ -39,8 +39,9 @@ O que o blueprint define, e por quê:
 
 | Item | Valor | Por quê |
 | --- | --- | --- |
-| Plano | `starter` | O free hiberna, não tem disco e não permite cron |
+| Plano | `starter` | O free hiberna e não tem disco persistente |
 | Disco | `/data`, 1 GB | Onde ficam avatares, capas e fotos de produto |
+| Cron | nenhum | RSS e sync rodam dentro da API — veja abaixo |
 | Health check | `/health` | O Render espera 200 aqui antes de mandar tráfego |
 | `JWT_SECRET` | gerado | Assina os logins; trocar derruba as sessões |
 
@@ -61,9 +62,21 @@ nada disso é limitação do código:
 com `Plan requires payment information on file` enquanto não houver forma de pagamento
 em Workspace Settings → Billing.
 
+### Os jobs rodam dentro da API
+
+Não há serviço de cron no Render. O [`scheduler.ts`](../apps/api/src/scheduler.ts) agenda
+RSS a cada 15 min e sync a cada hora no próprio processo do serviço web, que já fica
+ligado 24h — cada cron job do Render seria um serviço separado e cobrado à parte, e
+para dois jobs leves isso não compensava (US$ 7,25/mês contra US$ 9,25).
+
+A troca consciente: um job catastrófico levaria a API junto. Por isso todo job roda em
+`try/catch` e nunca propaga erro — o pior caso é uma linha de log.
+
+Fica desligado fora de produção; `SCHEDULER=on` força ligar, `SCHEDULER=off` força desligar.
+
 ### Rodar os jobs à mão
 
-Independente do plano, dá para disparar da sua máquina apontando para o Atlas:
+Também dá para disparar da sua máquina apontando para o Atlas:
 
 ```bash
 MONGODB_URI="mongodb+srv://..." npm run rss -w @ntv/api    # notícias novas
