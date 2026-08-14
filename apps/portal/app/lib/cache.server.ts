@@ -40,11 +40,19 @@ export function pageCacheHeaders(request: Request, window: CacheWindow): Headers
 
   if (hasCookie) {
     // Visitante identificado: a resposta é dele e não pode ser compartilhada.
-    return { "Cache-Control": "private, no-store", Vary: "Cookie" };
+    return {
+      "Cache-Control": "private, no-store",
+      "Oxygen-Cache-Control": "private, no-store",
+      Vary: "Cookie",
+    };
   }
 
   return {
+    // Para browser e proxies comuns.
     "Cache-Control": `public, max-age=0, s-maxage=${window.sMaxAge}, stale-while-revalidate=${window.staleWhileRevalidate}`,
-    // EXPERIMENTO: sem Vary para descobrir se é ele que inibe o cache do Oxygen.
+    // O que realmente liga o full-page cache do Oxygen: ele lê este header
+    // próprio, não o Cache-Control padrão, e exige um `max-age` explícito.
+    "Oxygen-Cache-Control": `public, max-age=${window.sMaxAge}, stale-while-revalidate=${window.staleWhileRevalidate}`,
+    Vary: "Cookie",
   };
 }
