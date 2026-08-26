@@ -4,9 +4,12 @@ import { formatDateTime } from "@ntv/shared";
 import {
   CONNECT_SOCIAL,
   CREATE_RSS,
+  CREATE_X,
   DELETE_RSS,
+  DELETE_X,
   DISCONNECT_SOCIAL,
   RUN_RSS,
+  RUN_X,
   SAVE_SETTINGS,
   SAVE_SIDEBAR,
   SAVE_SOCIAL_LINKS,
@@ -14,11 +17,12 @@ import {
   SYNC_YOUTUBE,
   SETTINGS,
   TOGGLE_RSS,
+  TOGGLE_X,
 } from "../lib/queries";
 import { Field, ImageDrop, Toggle } from "../components/ui";
 import { SidebarConfig } from "../components/SidebarConfig";
 
-const TABS = ["Geral", "Sidebar", "Fontes RSS", "Redes sociais", "SEO"] as const;
+const TABS = ["Geral", "Sidebar", "Fontes RSS", "Fontes X", "Redes sociais", "SEO"] as const;
 
 const NETWORK_FIELDS = [
   { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/…" },
@@ -35,6 +39,10 @@ export function Settings() {
   const [createRss] = useMutation(CREATE_RSS);
   const [deleteRss] = useMutation(DELETE_RSS);
   const [runRss, { loading: ingesting }] = useMutation(RUN_RSS);
+  const [toggleX] = useMutation(TOGGLE_X);
+  const [createX] = useMutation(CREATE_X);
+  const [deleteX] = useMutation(DELETE_X);
+  const [runX, { loading: ingestingX }] = useMutation(RUN_X);
   const [connectSocial] = useMutation(CONNECT_SOCIAL);
   const [disconnectSocial] = useMutation(DISCONNECT_SOCIAL);
   const [saveSocialLinks, { loading: savingLinks }] = useMutation(SAVE_SOCIAL_LINKS);
@@ -279,6 +287,118 @@ export function Settings() {
               <input className="ntv-input" name="category" defaultValue="Notícias" />
             </Field>
             <button className="ntv-btn">Adicionar fonte</button>
+          </form>
+        </section>
+      ) : null}
+
+      {tab === "Fontes X" ? (
+        <section className="card" style={{ maxWidth: 720 }}>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+            <h2 className="card__title" style={{ margin: 0 }}>
+              Perfis monitorados
+            </h2>
+            <button
+              className="ntv-btn ntv-btn--outline"
+              style={{ marginLeft: "auto" }}
+              disabled={ingestingX}
+              onClick={async () => {
+                const { data: result } = await runX();
+                setMessage(`${result.runXIngest} notícia(s) importada(s).`);
+                await refetch();
+              }}
+            >
+              {ingestingX ? "Importando…" : "Importar agora"}
+            </button>
+          </div>
+
+          <p className="hint" style={{ marginBottom: 14 }}>
+            Sem API oficial de leitura gratuita: a busca usa um endpoint não-documentado do X, que
+            pode parar de funcionar sem aviso. Se um perfil ficar com erro persistente, é
+            provavelmente isso — não precisa reconfigurar nada, é aguardar ou avisar o
+            desenvolvedor. Publica direto, com o tweet incorporado e crédito automático do perfil.
+          </p>
+
+          {data?.xSources?.map((source: any) => (
+            <div
+              key={source.id}
+              style={{
+                display: "flex",
+                gap: 10,
+                alignItems: "center",
+                padding: "12px 0",
+                borderBottom: "1px solid var(--ntv-border-inner)",
+              }}
+            >
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: source.lastError ? "var(--ntv-alert)" : "var(--ntv-success)",
+                }}
+              />
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <strong style={{ fontSize: 13.5, color: "var(--ntv-ink)" }}>{source.name}</strong>
+                <span className="hint">@{source.handle}</span>
+                <span className="hint">
+                  {source.lastError
+                    ? `Erro: ${source.lastError} (${formatDateTime(source.lastFetchAt)})`
+                    : `${source.importedCount} importados · ${formatDateTime(source.lastFetchAt) || "sem leitura ainda"}`}
+                </span>
+              </span>
+              <label className="toggle" style={{ borderBottom: 0, padding: 0 }}>
+                <input
+                  type="checkbox"
+                  checked={source.enabled}
+                  onChange={async (e) => {
+                    await toggleX({ variables: { id: source.id, enabled: e.target.checked } });
+                    await refetch();
+                  }}
+                />
+                <span className="toggle__track" />
+              </label>
+              <button
+                className="linkbtn"
+                onClick={async () => {
+                  if (!confirm(`Remover @${source.handle}?`)) return;
+                  await deleteX({ variables: { id: source.id } });
+                  await refetch();
+                }}
+              >
+                Remover
+              </button>
+            </div>
+          ))}
+
+          <form
+            style={{ marginTop: 18 }}
+            onSubmit={async (event) => {
+              event.preventDefault();
+              const form = new FormData(event.currentTarget);
+              await createX({
+                variables: {
+                  input: {
+                    handle: String(form.get("handle") ?? "").replace(/^@/, ""),
+                    name: form.get("name"),
+                    category: form.get("category") || "Notícias",
+                  },
+                },
+              });
+              (event.target as HTMLFormElement).reset();
+              await refetch();
+            }}
+          >
+            <h3 className="card__title">Novo perfil</h3>
+            <Field label="@handle">
+              <input className="ntv-input" name="handle" required placeholder="leolacerdantv" />
+            </Field>
+            <Field label="Nome de exibição" hint="Usado no título e no crédito da notícia.">
+              <input className="ntv-input" name="name" required placeholder="Léo Lacerda" />
+            </Field>
+            <Field label="Categoria dos posts importados">
+              <input className="ntv-input" name="category" defaultValue="Notícias" />
+            </Field>
+            <button className="ntv-btn">Adicionar perfil</button>
           </form>
         </section>
       ) : null}

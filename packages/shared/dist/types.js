@@ -10,6 +10,7 @@ export const PERMISSIONS = {
         "products:manage",
         "settings:manage",
         "rss:manage",
+        "x:manage",
         "social:manage",
     ],
     editor: ["posts:write", "featured:manage", "products:manage"],

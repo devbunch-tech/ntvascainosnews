@@ -191,6 +191,7 @@ export function PostsList({ me }: { me: { id: string; role: Role } }) {
           <option value="">Toda origem</option>
           <option value="team">Original</option>
           <option value="rss">RSS</option>
+          <option value="x">X</option>
         </select>
         <select
           className="ntv-select"
@@ -318,6 +319,12 @@ export function PostsList({ me }: { me: { id: string; role: Role } }) {
                       <>
                         {" "}
                         <span className="ntv-badge ntv-badge--mute">RSS</span>
+                      </>
+                    ) : null}
+                    {post.source.type === "x" ? (
+                      <>
+                        {" "}
+                        <span className="ntv-badge ntv-badge--mute">X</span>
                       </>
                     ) : null}
                   </td>

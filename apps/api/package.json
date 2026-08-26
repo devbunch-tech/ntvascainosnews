@@ -10,6 +10,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "seed": "tsx src/seed.ts",
     "rss": "tsx src/jobs/rss.ts",
+    "x": "tsx src/jobs/x.ts",
     "reset:content": "tsx src/scripts/reset-content.ts",
     "admin:create": "tsx src/scripts/create-admin.ts",
     "rss:renormalize": "tsx src/scripts/renormalize-rss.ts",

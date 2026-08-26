@@ -371,6 +371,17 @@ export const SETTINGS = gql`
       lastError
       importedCount
     }
+    xSources {
+      id
+      handle
+      name
+      enabled
+      autoPublish
+      category
+      lastFetchAt
+      lastError
+      importedCount
+    }
   }
 `;
 
@@ -539,6 +550,35 @@ export const DELETE_RSS = gql`
 export const RUN_RSS = gql`
   mutation RunRss {
     runRssIngest
+  }
+`;
+
+export const TOGGLE_X = gql`
+  mutation ToggleX($id: ID!, $enabled: Boolean!) {
+    toggleXSource(id: $id, enabled: $enabled) {
+      id
+      enabled
+    }
+  }
+`;
+
+export const CREATE_X = gql`
+  mutation CreateX($input: XSourceInput!) {
+    createXSource(input: $input) {
+      id
+    }
+  }
+`;
+
+export const DELETE_X = gql`
+  mutation DeleteX($id: ID!) {
+    deleteXSource(id: $id)
+  }
+`;
+
+export const RUN_X = gql`
+  mutation RunX {
+    runXIngest
   }
 `;
 

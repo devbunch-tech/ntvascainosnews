@@ -463,8 +463,11 @@ export const postResolvers = {
       const original = await Post.findById(p.duplicateOf).select("source").lean();
       return original?.source?.name ?? null;
     },
-    credit: (p: { source?: { type?: string; name?: string } }) =>
-      p.source?.type === "rss" && p.source?.name ? `via ${p.source.name} · RSS` : null,
+    credit: (p: { source?: { type?: string; name?: string } }) => {
+      if (p.source?.type === "rss" && p.source?.name) return `via ${p.source.name} · RSS`;
+      if (p.source?.type === "x" && p.source?.name) return `via ${p.source.name} · X`;
+      return null;
+    },
     author: async (p: { author?: unknown }) => {
       if (!p.author) return null;
       if (typeof p.author === "object" && "name" in (p.author as object)) return p.author;

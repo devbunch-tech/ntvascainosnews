@@ -8,6 +8,7 @@ import { Post } from "./models/Post.js";
 import { Product } from "./models/Product.js";
 import { Poll } from "./models/Poll.js";
 import { RssSource } from "./models/RssSource.js";
+import { XSource } from "./models/XSource.js";
 import { Setting } from "./models/Setting.js";
 import { Match, ClubStat } from "./models/Match.js";
 import { Event } from "./models/Event.js";
@@ -24,6 +25,7 @@ await Promise.all([
   Product.deleteMany({}),
   Poll.deleteMany({}),
   RssSource.deleteMany({}),
+  XSource.deleteMany({}),
   Setting.deleteMany({}),
   Match.deleteMany({}),
   ClubStat.deleteMany({}),
@@ -289,6 +291,13 @@ await RssSource.create([
     url: "https://pox.globo.com/rss/ge/futebol/times/vasco",
     category: "Notícias",
   },
+]);
+
+await XSource.create([
+  { handle: "leolacerdantv", name: "Léo Lacerda", category: "Notícias" },
+  { handle: "PodCruzmaltino", name: "Pod Cruzmaltino", category: "Notícias" },
+  { handle: "pedrosa", name: "Pedrosa", category: "Notícias" },
+  { handle: "Vascanellas", name: "Vascanellas", category: "Notícias" },
 ]);
 
 await ClubStat.create({

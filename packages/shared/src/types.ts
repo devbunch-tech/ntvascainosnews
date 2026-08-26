@@ -3,7 +3,7 @@
 
 export type Role = "admin" | "editor" | "reader";
 export type PostStatus = "draft" | "published" | "scheduled";
-export type SourceType = "team" | "rss";
+export type SourceType = "team" | "rss" | "x";
 export type FeaturedPosition = 1 | 2 | 3;
 export type MatchVenue = "home" | "away";
 export type MatchResult = "W" | "D" | "L";
@@ -152,6 +152,7 @@ export const PERMISSIONS: Record<Role, string[]> = {
     "products:manage",
     "settings:manage",
     "rss:manage",
+    "x:manage",
     "social:manage",
   ],
   editor: ["posts:write", "featured:manage", "products:manage"],

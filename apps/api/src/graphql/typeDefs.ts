@@ -14,6 +14,7 @@ export const typeDefs = /* GraphQL */ `
   enum SourceType {
     team
     rss
+    x
   }
   enum PollChoice {
     good
@@ -355,6 +356,22 @@ export const typeDefs = /* GraphQL */ `
     importedCount: Int!
   }
 
+  """
+  Perfil do X monitorado pela ingestão automática. Sem API de leitura
+  gratuita oficial — usa o endpoint de sindicação da timeline (README §X).
+  """
+  type XSource {
+    id: ID!
+    handle: String!
+    name: String!
+    enabled: Boolean!
+    autoPublish: Boolean!
+    category: String!
+    lastFetchAt: DateTime
+    lastError: String
+    importedCount: Int!
+  }
+
   type SocialAccount {
     connected: Boolean!
     handle: String
@@ -614,6 +631,14 @@ export const typeDefs = /* GraphQL */ `
     category: String
   }
 
+  input XSourceInput {
+    handle: String!
+    name: String!
+    enabled: Boolean
+    autoPublish: Boolean
+    category: String
+  }
+
   input MatchInput {
     opponent: String!
     date: DateTime!
@@ -679,6 +704,7 @@ export const typeDefs = /* GraphQL */ `
     users(search: String, role: Role): [User!]!
     settings: Settings!
     rssSources: [RssSource!]!
+    xSources: [XSource!]!
     dashboard: Dashboard!
     categories: [FacetCount!]!
     """
@@ -769,6 +795,15 @@ export const typeDefs = /* GraphQL */ `
     Roda a ingestão sob demanda; retorna quantos posts entraram.
     """
     runRssIngest: Int!
+
+    createXSource(input: XSourceInput!): XSource!
+    updateXSource(id: ID!, input: XSourceInput!): XSource!
+    toggleXSource(id: ID!, enabled: Boolean!): XSource!
+    deleteXSource(id: ID!): Boolean!
+    """
+    Roda a ingestão sob demanda; retorna quantos posts entraram.
+    """
+    runXIngest: Int!
 
     """
     Publica um comentário. Exige sessão e passa pelo filtro de moderação.

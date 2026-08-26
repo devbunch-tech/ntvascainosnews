@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   Link,
   data,
@@ -137,6 +138,14 @@ export default function PostRoute() {
   const { post, comments, articleAds, latestPosts, home, me, canonicalUrl, apiUrl } =
     useLoaderData<typeof loader>();
   const site = useSite();
+
+  // O widgets.js só varre a página sozinho no load inicial do script; numa
+  // navegação client-side pra outra notícia, o blockquote novo fica cru até
+  // mandar ele varrer de novo.
+  useEffect(() => {
+    (window as any).twttr?.widgets?.load();
+  }, [post?.id]);
+
   if (!post) return null;
 
   return (

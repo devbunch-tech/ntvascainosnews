@@ -51,6 +51,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#101014" />
 
+        {/* Widget de embed do X — converte o <blockquote class="twitter-tweet">
+            que a ingestão de posts do X grava no corpo da notícia. */}
+        <script async src="https://platform.twitter.com/widgets.js" charSet="utf-8" />
+
         {/* Google tag (gtag.js) */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-YG17SVXP11" />
         <script

@@ -2,7 +2,7 @@
  *  Fonte da verdade do schema: apps/api/src/graphql/typeDefs.ts */
 export type Role = "admin" | "editor" | "reader";
 export type PostStatus = "draft" | "published" | "scheduled";
-export type SourceType = "team" | "rss";
+export type SourceType = "team" | "rss" | "x";
 export type FeaturedPosition = 1 | 2 | 3;
 export type MatchVenue = "home" | "away";
 export type MatchResult = "W" | "D" | "L";

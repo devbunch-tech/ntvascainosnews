@@ -14,7 +14,7 @@ const postSchema = new Schema(
     tags: { type: [String], default: [] },
     author: { type: Schema.Types.ObjectId, ref: "User", default: null },
     source: {
-      type: { type: String, enum: ["team", "rss"], default: "team", index: true },
+      type: { type: String, enum: ["team", "rss", "x"], default: "team", index: true },
       name: { type: String, default: null },
       url: { type: String, default: null },
     },

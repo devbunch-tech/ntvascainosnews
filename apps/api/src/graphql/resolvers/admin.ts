@@ -2,10 +2,12 @@ import { resolveSidebarWidgets, resolveAdLimit } from "@ntv/shared";
 import { Post } from "../../models/Post.js";
 import { Event } from "../../models/Event.js";
 import { RssSource } from "../../models/RssSource.js";
+import { XSource } from "../../models/XSource.js";
 import { Setting, getSettings } from "../../models/Setting.js";
 import { requirePermission } from "../../lib/auth.js";
 import { idField, type GraphQLContext } from "../../lib/context.js";
 import { ingestAll } from "../../jobs/ingest.js";
+import { ingestAllX } from "../../jobs/x-ingest.js";
 
 function startOfToday() {
   const d = new Date();
@@ -31,7 +33,7 @@ export const adminResolvers = {
         Post.find().sort({ updatedAt: -1 }).limit(8).populate("author").lean(),
       ]);
 
-      const team = postsToday.filter((p) => p.source?.type !== "rss").length;
+      const team = postsToday.filter((p) => p.source?.type !== "rss" && p.source?.type !== "x").length;
 
       // Três slots fixos; posição vaga volta como null (slot tracejado no dashboard).
       const slots: (unknown | null)[] = [null, null, null];
@@ -59,6 +61,11 @@ export const adminResolvers = {
     rssSources: async (_: unknown, __: unknown, ctx: GraphQLContext) => {
       requirePermission(ctx.user, "rss:manage");
       return RssSource.find().sort({ name: 1 }).lean();
+    },
+
+    xSources: async (_: unknown, __: unknown, ctx: GraphQLContext) => {
+      requirePermission(ctx.user, "x:manage");
+      return XSource.find().sort({ name: 1 }).lean();
     },
   },
 
@@ -149,9 +156,38 @@ export const adminResolvers = {
       const { imported } = await ingestAll();
       return imported;
     },
+
+    createXSource: async (_: unknown, { input }: { input: any }, ctx: GraphQLContext) => {
+      requirePermission(ctx.user, "x:manage");
+      return (await XSource.create({ ...input, handle: input.handle.replace(/^@/, "") })).toObject();
+    },
+    updateXSource: async (_: unknown, { id, input }: { id: string; input: any }, ctx: GraphQLContext) => {
+      requirePermission(ctx.user, "x:manage");
+      const data = input.handle ? { ...input, handle: input.handle.replace(/^@/, "") } : input;
+      return XSource.findByIdAndUpdate(id, { $set: data }, { new: true }).lean();
+    },
+    toggleXSource: async (
+      _: unknown,
+      { id, enabled }: { id: string; enabled: boolean },
+      ctx: GraphQLContext,
+    ) => {
+      requirePermission(ctx.user, "x:manage");
+      return XSource.findByIdAndUpdate(id, { $set: { enabled } }, { new: true }).lean();
+    },
+    deleteXSource: async (_: unknown, { id }: { id: string }, ctx: GraphQLContext) => {
+      requirePermission(ctx.user, "x:manage");
+      await XSource.findByIdAndDelete(id);
+      return true;
+    },
+    runXIngest: async (_: unknown, __: unknown, ctx: GraphQLContext) => {
+      requirePermission(ctx.user, "x:manage");
+      const { imported } = await ingestAllX();
+      return imported;
+    },
   },
 
   RssSource: { id: idField },
+  XSource: { id: idField },
   Settings: {
     // Resolvido na leitura, não na gravação: assim um widget novo no código
     // aparece para quem já tem configuração salva, sem migração de banco.

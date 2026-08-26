@@ -13,6 +13,7 @@
  *  "a cada N minutos" e evita mais uma dependência no bundle.
  */
 import { ingestAll } from "./jobs/ingest.js";
+import { ingestAllX } from "./jobs/x-ingest.js";
 import { syncYoutube } from "./jobs/youtube.js";
 import { syncAll as syncMatches, MatchSyncDisabled } from "./jobs/matches.js";
 import { syncMarket } from "./jobs/market.js";
@@ -42,6 +43,13 @@ async function rodarRss() {
   await protegido("rss", async () => {
     const { imported, sources } = await ingestAll();
     return `${imported} post(s) de ${sources} fonte(s)`;
+  });
+}
+
+async function rodarX() {
+  await protegido("x", async () => {
+    const { imported, sources } = await ingestAllX();
+    return `${imported} post(s) de ${sources} perfil(is)`;
   });
 }
 
@@ -85,13 +93,15 @@ export function startScheduler(isProd: boolean) {
   }
 
   console.log(
-    `[scheduler] ligado · rss a cada ${INTERVALO_RSS / MINUTO}min · sync a cada ${INTERVALO_SYNC / MINUTO}min`,
+    `[scheduler] ligado · rss/x a cada ${INTERVALO_RSS / MINUTO}min · sync a cada ${INTERVALO_SYNC / MINUTO}min`,
   );
 
   setTimeout(() => {
     void rodarRss();
+    void rodarX();
     void rodarSync();
     setInterval(() => void rodarRss(), INTERVALO_RSS);
+    setInterval(() => void rodarX(), INTERVALO_RSS);
     setInterval(() => void rodarSync(), INTERVALO_SYNC);
   }, ATRASO_INICIAL);
 }
