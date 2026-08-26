@@ -22,6 +22,16 @@ export const meta: MetaFunction = ({ matches }) =>
     title: "NTV Exclusivo",
     description:
       "Apuração própria da equipe do NTV News sobre o Vasco da Gama — sem agregação.",
+    keywords: [
+      "NT Vascaínos",
+      "na torcida vascaínos",
+      "podcast cruzmaltino",
+      "Léo Lacerda",
+      "atenção vascaínos",
+      "negociações vasco",
+      "justiça vasco",
+      "Vasco da Gama",
+    ],
   });
 
 export async function loader({ request }: LoaderFunctionArgs) {

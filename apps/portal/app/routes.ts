@@ -25,6 +25,7 @@ export default hydrogenRoutes([
   route("api/clique-anuncio", "routes/api.clique-anuncio.tsx"),
   route("anuncie", "routes/anuncie.tsx"),
   route("robots.txt", "routes/robots.tsx"),
+  route("llms.txt", "routes/llms.txt.tsx"),
   // O Oxygen reserva o caminho exato /sitemap.xml e responde 404 antes de chegar
   // no worker (header `oxygen-static-page: 404`), então o índice é servido aqui.
   route("sitemap-index.xml", "routes/sitemap.tsx"),

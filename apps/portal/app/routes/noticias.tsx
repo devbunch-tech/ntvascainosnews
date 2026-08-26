@@ -20,6 +20,16 @@ export const meta: MetaFunction = ({ matches }) =>
     title: "Notícias do Vasco",
     description:
       "Todas as notícias do Vasco da Gama publicadas no NTV News, atualizadas o dia todo.",
+    keywords: [
+      "notícias vasco",
+      "novidades vasco",
+      "atualizações vasco",
+      "justiça vasco",
+      "Vasco da Gama",
+      "vascaíno",
+      "NetVasco",
+      "futebol",
+    ],
   });
 
 export async function loader({ request }: LoaderFunctionArgs) {

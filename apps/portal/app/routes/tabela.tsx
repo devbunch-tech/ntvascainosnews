@@ -66,6 +66,16 @@ export const meta: MetaFunction = ({ matches }) =>
     title: "Tabela e chaveamento",
     description:
       "Classificação do Vasco no Brasileirão e o chaveamento completo da Copa do Brasil e da Sul-Americana.",
+    keywords: [
+      "brasileirão 2026",
+      "brasileirão betano",
+      "copa do brasil",
+      "sul-americana",
+      "tabela do vasco",
+      "Vasco da Gama",
+      "flamengo",
+      "futebol",
+    ],
   });
 
 export async function loader({ request }: LoaderFunctionArgs) {

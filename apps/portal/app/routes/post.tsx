@@ -9,7 +9,7 @@ import { formatDateTime } from "@ntv/shared";
 import { Header, Avatar, type SessionUser } from "~/components/Header";
 import { Footer } from "~/components/Footer";
 import { useSite, publicAsset } from "~/lib/site";
-import { articleJsonLd, geoMeta } from "~/lib/seo";
+import { articleJsonLd, geoMeta, twitterSiteFromMatches, DEFAULT_KEYWORDS } from "~/lib/seo";
 import { categoryPath, tagPath } from "~/lib/taxonomy";
 import { Sidebar, type SidebarData } from "~/components/Sidebar";
 import { ShareButtons } from "~/components/ShareButtons";
@@ -53,14 +53,15 @@ interface PostPageData {
   me: SessionUser | null;
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data: loaded }) => {
+export const meta: MetaFunction<typeof loader> = ({ data: loaded, matches }) => {
   const post = loaded?.post;
   if (!post) return [{ title: "Notícia não encontrada — NTV News" }];
 
   // A descrição gerada na API é a autoridade: já respeita limite e edição manual.
   const description = post.seo?.description ?? post.subtitle ?? post.excerpt ?? post.title;
   const image = post.coverImage;
-  const keywords = post.seo?.keywords ?? [];
+  const keywords = post.seo?.keywords?.length ? post.seo.keywords : DEFAULT_KEYWORDS;
+  const twitterSite = twitterSiteFromMatches(matches as never);
 
   return [
     { title: `${post.title} — NTV News` },
@@ -99,6 +100,7 @@ export const meta: MetaFunction<typeof loader> = ({ data: loaded }) => {
     ...geoMeta(post.geo),
 
     { name: "twitter:card", content: image ? "summary_large_image" : "summary" },
+    ...(twitterSite ? [{ name: "twitter:site", content: twitterSite }] : []),
     { name: "twitter:title", content: post.title },
     { name: "twitter:description", content: description },
     ...(image ? [{ name: "twitter:image", content: image }] : []),
@@ -161,7 +163,7 @@ export default function PostRoute() {
                   publishedAt: post.publishedAt,
                   updatedAt: post.updatedAt,
                   category: post.category,
-                  keywords: post.seo?.keywords ?? [],
+                  keywords: post.seo?.keywords?.length ? post.seo.keywords : DEFAULT_KEYWORDS,
                   authorName: post.author?.name,
                   sourceName: post.source.name,
                   sourceUrl: post.source.url,

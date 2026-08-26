@@ -28,6 +28,19 @@ export const meta: MetaFunction = ({ matches }) =>
     title: "NTV News — Notícias do Vasco da Gama",
     description:
       "O portal do torcedor vascaíno: notícias, mercado da bola, tabela, chaveamento das copas e a Loja NTV.",
+    keywords: [
+      "Vasco",
+      "vascaíno",
+      "Vasco da Gama",
+      "NetVasco",
+      "NT Vascaínos",
+      "Léo Lacerda",
+      "na torcida vascaínos",
+      "notícias vasco",
+      "novidades vasco",
+      "atualizações vasco",
+      "futebol",
+    ],
   });
 
 export async function loader({ request }: LoaderFunctionArgs) {

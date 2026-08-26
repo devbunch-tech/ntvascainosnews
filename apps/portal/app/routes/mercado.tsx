@@ -58,6 +58,16 @@ export const meta: MetaFunction = ({ matches }) =>
     title: "Mercado da Bola",
     description:
       "Todas as especulações de contratação do Vasco na janela atual. Vote se aprova ou reprova cada nome.",
+    keywords: [
+      "mercado da bola",
+      "negociações vasco",
+      "novidades vasco",
+      "nome dos jogadores do vasco",
+      "Vasco da Gama",
+      "bap",
+      "leila pereira",
+      "futebol",
+    ],
   });
 
 export async function loader({ request }: LoaderFunctionArgs) {

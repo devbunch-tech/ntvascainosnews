@@ -19,6 +19,54 @@ export interface SiteInfo {
 const abs = (siteUrl: string, path: string) =>
   path.startsWith("http") ? path : `${siteUrl.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
 
+/**
+ * Piso de palavras-chave do portal — usado quando a página não define as
+ * suas e o admin ainda não configurou nada em Configurações → SEO. Cobre o
+ * clube, o time editorial e os termos de busca que a torcida usa.
+ */
+export const DEFAULT_KEYWORDS = [
+  "Vasco",
+  "vascaíno",
+  "Vasco da Gama",
+  "NetVasco",
+  "NT Vascaínos",
+  "Léo Lacerda",
+  "na torcida vascaínos",
+  "notícias vasco",
+  "novidades vasco",
+  "negociações vasco",
+  "atualizações vasco",
+  "justiça vasco",
+  "atenção vascaínos",
+  "podcast cruzmaltino",
+  "nome dos jogadores do vasco",
+  "mercado da bola",
+  "brasileirão 2026",
+  "brasileirão betano",
+  "copa do brasil",
+  "sul-americana",
+  "flamengo",
+  "bap",
+  "leila pereira",
+  "futebol",
+];
+
+/** Extrai o @handle de uma URL do X/Twitter, para a tag `twitter:site`. */
+function twitterHandle(url?: string | null): string | undefined {
+  if (!url) return undefined;
+  const match = url.match(/(?:twitter|x)\.com\/@?([A-Za-z0-9_]+)/i);
+  return match ? `@${match[1]}` : undefined;
+}
+
+/** Mesma extração acima, mas a partir dos `matches` do root — para páginas
+ *  que montam a própria lista de meta tags em vez de usar `pageMeta`. */
+export function twitterSiteFromMatches(matches: RootMatch[]): string | undefined {
+  const root = matches.find((match) => match.id === "root")?.data as
+    | { settings?: { socialAccounts?: { x?: { url?: string | null } | null } } }
+    | undefined;
+  return twitterHandle(root?.settings?.socialAccounts?.x?.url);
+}
+
 /** Escapa para o XML de sitemap e feed. */
 export const escapeXml = (value: string) =>
   value
@@ -175,7 +223,14 @@ interface RootMatch {
 /** Configurações do site dentro do `meta()`, que não tem acesso a hooks. */
 function siteFromMatches(matches: RootMatch[]) {
   const root = matches.find((match) => match.id === "root")?.data as
-    | { settings?: { siteName?: string; url?: string; seo?: Record<string, any> } }
+    | {
+        settings?: {
+          siteName?: string;
+          url?: string;
+          seo?: Record<string, any>;
+          socialAccounts?: { x?: { url?: string | null } | null };
+        };
+      }
     | undefined;
 
   return {
@@ -184,6 +239,7 @@ function siteFromMatches(matches: RootMatch[]) {
     defaultDescription: root?.settings?.seo?.description ?? "",
     defaultKeywords: (root?.settings?.seo?.keywords as string[] | undefined) ?? [],
     ogImage: root?.settings?.seo?.ogImage as string | undefined,
+    twitterSite: twitterHandle(root?.settings?.socialAccounts?.x?.url),
   };
 }
 
@@ -209,7 +265,11 @@ export function pageMeta(input: PageMetaInput) {
   const site = siteFromMatches(input.matches);
   const url = site.siteUrl ? `${site.siteUrl}${input.path}` : undefined;
   const description = input.description || site.defaultDescription;
-  const keywords = input.keywords?.length ? input.keywords : site.defaultKeywords;
+  const keywords = input.keywords?.length
+    ? input.keywords
+    : site.defaultKeywords.length
+      ? site.defaultKeywords
+      : DEFAULT_KEYWORDS;
   const image = input.image ?? site.ogImage;
   const title = input.title.includes(site.siteName)
     ? input.title
@@ -238,6 +298,7 @@ export function pageMeta(input: PageMetaInput) {
     ...(image ? [{ property: "og:image", content: image }] : []),
 
     { name: "twitter:card", content: image ? "summary_large_image" : "summary" },
+    ...(site.twitterSite ? [{ name: "twitter:site", content: site.twitterSite }] : []),
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
     ...(image ? [{ name: "twitter:image", content: image }] : []),
