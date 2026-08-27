@@ -231,8 +231,14 @@ async function findActiveTwin(dedupeKey: string, when: Date) {
  * Reescreve `body`/`excerpt`/`seo.description` só quando a fonte
  * **acrescentou** texto ao que já está publicado — nunca quando o texto
  * mudou de outro jeito. Um post editado à mão no admin não bate mais com o
- * prefixo do feed e fica de fora, de propósito: preferimos ficar com uma
+ * início do feed e fica de fora, de propósito: preferimos ficar com uma
  * matéria curta a sobrescrever uma edição manual.
+ *
+ * Não exige prefixo exato: ao completar um flash, é comum a fonte reescrever
+ * a abertura (acrescentar uma frase de contexto antes do texto original) em
+ * vez de só grudar texto no fim. Por isso procura o texto salvo como
+ * substring no começo do texto novo — cobre os dois casos e ainda barra
+ * matéria sem relação (o texto salvo teria que aparecer por acaso).
  */
 async function expandExisting(
   existing: { _id: unknown; body?: string | null; seo?: { auto?: boolean | null } | null },
@@ -248,7 +254,16 @@ async function expandExisting(
   const body = normalizeBody(html, { coverImage, title: item.title });
   const existingText = toPlainText(existing.body ?? "");
   const freshText = toPlainText(body);
-  if (freshText.length <= existingText.length || !freshText.startsWith(existingText)) return false;
+  // Janela de busca curta (2x o tamanho do texto antigo, +200): a reescrita da
+  // abertura costuma ser só algumas frases, não o texto todo remontado.
+  const searchWindow = freshText.slice(0, existingText.length * 2 + 200);
+  if (
+    !existingText ||
+    freshText.length <= existingText.length ||
+    !searchWindow.includes(existingText)
+  ) {
+    return false;
+  }
 
   const update: Record<string, unknown> = { body, excerpt: excerptOf(body) };
   // Respeita descrição de SEO escrita à mão (seo.auto === false).
