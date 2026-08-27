@@ -1,5 +1,5 @@
 import Parser from "rss-parser";
-import { buildPostSeo, slugify, titleFingerprint } from "@ntv/shared";
+import { buildPostSeo, slugify, titleFingerprint, toPlainText } from "@ntv/shared";
 import { Post } from "../models/Post.js";
 import { RssSource } from "../models/RssSource.js";
 
@@ -198,6 +198,15 @@ async function uniqueSlug(base: string) {
 const DEDUPE_WINDOW_DAYS = 7;
 
 /**
+ * Sites de torcida costumam soltar um flash curto e completar a matéria no
+ * mesmo link minutos ou horas depois. Como a ingestão nunca revisita um
+ * `externalId` já importado, sem isto o post fica preso na versão curta pra
+ * sempre. A janela de revisão é só pras primeiras horas — depois disso, uma
+ * mudança no texto da fonte é mais provável de ser edição do que expansão.
+ */
+const REFRESH_WINDOW_MS = 12 * 60 * 60 * 1000;
+
+/**
  * Procura uma notícia já publicada com o mesmo título, dentro da janela.
  * Devolve a **ativa** (a que não é cópia de ninguém), para a cadeia de
  * duplicatas apontar sempre para a original.
@@ -218,12 +227,48 @@ async function findActiveTwin(dedupeKey: string, when: Date) {
     .lean();
 }
 
+/**
+ * Reescreve `body`/`excerpt`/`seo.description` só quando a fonte
+ * **acrescentou** texto ao que já está publicado — nunca quando o texto
+ * mudou de outro jeito. Um post editado à mão no admin não bate mais com o
+ * prefixo do feed e fica de fora, de propósito: preferimos ficar com uma
+ * matéria curta a sobrescrever uma edição manual.
+ */
+async function expandExisting(
+  existing: { _id: unknown; body?: string | null; seo?: { auto?: boolean | null } | null },
+  item: Record<string, any>,
+  category: string,
+): Promise<boolean> {
+  const html = item.contentEncoded ?? item.content ?? item.contentSnippet ?? "";
+  if (!html) return false;
+
+  let coverImage = imageFromItem(item);
+  if (!coverImage && item.link) coverImage = await imageFromArticle(item.link);
+
+  const body = normalizeBody(html, { coverImage, title: item.title });
+  const existingText = toPlainText(existing.body ?? "");
+  const freshText = toPlainText(body);
+  if (freshText.length <= existingText.length || !freshText.startsWith(existingText)) return false;
+
+  const update: Record<string, unknown> = { body, excerpt: excerptOf(body) };
+  // Respeita descrição de SEO escrita à mão (seo.auto === false).
+  if (existing.seo?.auto !== false) {
+    const seo = buildPostSeo({ title: item.title, excerpt: excerptOf(body), body, category });
+    update["seo.description"] = seo.description;
+    update["seo.keywords"] = seo.keywords;
+  }
+
+  await Post.updateOne({ _id: existing._id }, { $set: update });
+  return true;
+}
+
 /** Ingere uma fonte. Itens entram publicados com crédito (README §RSS). */
 export async function ingestSource(sourceId: string): Promise<number> {
   const source = await RssSource.findById(sourceId);
   if (!source || !source.enabled) return 0;
 
   let imported = 0;
+  let refreshed = 0;
   let missingImages = 0;
   let duplicates = 0;
 
@@ -233,7 +278,14 @@ export async function ingestSource(sourceId: string): Promise<number> {
     for (const item of feed.items ?? []) {
       const externalId = item.guid || item.link;
       if (!externalId || !item.title) continue;
-      if (await Post.exists({ externalId })) continue;
+
+      const existing = await Post.findOne({ externalId }).select("body seo.auto publishedAt");
+      if (existing) {
+        const stillFresh =
+          existing.publishedAt && Date.now() - existing.publishedAt.getTime() < REFRESH_WINDOW_MS;
+        if (stillFresh && (await expandExisting(existing, item, source.category))) refreshed += 1;
+        continue;
+      }
 
       const html =
         (item as any).contentEncoded ?? item.content ?? item.contentSnippet ?? "";
@@ -289,6 +341,9 @@ export async function ingestSource(sourceId: string): Promise<number> {
   }
   if (missingImages) {
     console.warn(`[rss] ${source.name}: ${missingImages} de ${imported} item(ns) sem imagem.`);
+  }
+  if (refreshed) {
+    console.log(`[rss] ${source.name}: ${refreshed} matéria(s) expandida(s) pela fonte.`);
   }
 
   source.lastFetchAt = new Date();
